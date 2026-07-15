@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Unified Inventory System</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+
+    <style>
+        /* === CORE SHARED STYLES === */
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        html { scroll-behavior: smooth; }
+        body { 
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; 
+            line-height: 1.6; 
+            -webkit-font-smoothing: antialiased; 
+            transition: background-color 0.4s ease, color 0.4s ease;
+            overflow-x: hidden;
+            padding-bottom: 80px; /* Space for Bottom Nav */
+        }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.05); }
+        ::-webkit-scrollbar-thumb { background: rgba(100, 100, 100, 0.3); border-radius: 4px; }
+
+        /* === BOTTOM NAVIGATION === */
+        #master-nav {
+            position: fixed; bottom: 0; left: 0; right: 0; z-index: 20000;
+            display: flex; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            transition: all 0.4s ease;
+        }
+        .nav-btn { flex: 1; padding: 16px 0; display: flex; flex-col; align-items: center; justify-content: center; flex-direction: column; gap: 4px; font-weight: 700; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; transition: 0.3s; border: none; outline: none; background: transparent; cursor: pointer; }
+        .nav-btn i { font-size: 20px; margin-bottom: 2px; transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .nav-btn:active i { transform: scale(0.8); }
+
+        /* Nav Themes */
+        .nav-light { background: rgba(255,255,255,0.85); border-top: 1px solid rgba(0,0,0,0.1); box-shadow: 0 -10px 30px rgba(0,0,0,0.05); }
+        .nav-light .nav-btn { color: #94a3b8; }
+        .nav-light .nav-btn.active { color: #4361ee; }
+
+        .nav-dark { background: rgba(10,10,15,0.85); border-top: 1px solid rgba(255,255,255,0.1); box-shadow: 0 -10px 30px rgba(0,0,0,0.5); }
+        .nav-dark .nav-btn { color: #64748b; }
+        .nav-dark .nav-btn.active { color: #00E676; text-shadow: 0 0 10px rgba(0,230,118,0.4); }
+
+        /* =========================================
+           APP 1: STOCKFLOW (LIGHT DASHBOARD) CSS
+           ========================================= */
+        :root {
+            --sf-primary: #4361ee; --sf-primary-dark: #3a0ca3; --sf-secondary: #7209b7;
+            --sf-success: #4cc9f0; --sf-danger: #ef476f;
+            --sf-card-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            --sf-hover-shadow: 0 10px 40px rgba(0, 0, 0, 0.12);
+        }
+
+        #app-stockflow { display: block; animation: sf-fadeIn 0.5s ease; }
+        @keyframes sf-fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .sf-loader { position: fixed; inset: 0; background: linear-gradient(135deg, var(--sf-primary) 0%, var(--sf-secondary) 100%); z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s; color: white; text-align: center; }
+        .sf-spinner { width: 60px; height: 60px; border: 3px solid rgba(255,255,255,0.2); border-top: 3px solid white; border-radius: 50%; animation: spin 1s linear infinite; margin: 2rem auto; }
+        .sf-glass-panel { background: rgba(255,255,255,0.95); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.3); border-radius: 20px; box-shadow: var(--sf-card-shadow); transition: all 0.3s; }
+        .sf-glass-panel:hover { box-shadow: var(--sf-hover-shadow); transform: translateY(-2px); }
+        
+        .sf-item-card { background: linear-gradient(135deg, #ffffff 0%, #f8f9ff 100%); border-radius: 16px; padding: 1.5rem; border: 1px solid rgba(255,255,255,0.8); box-shadow: var(--sf-card-shadow); transition: all 0.3s; position: relative; overflow: hidden; cursor: pointer; }
+        .sf-item-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, var(--sf-primary) 0%, var(--sf-success) 100%); transform: scaleX(0); transform-origin: left; transition: transform 0.4s; }
+        .sf-item-card:hover { transform: translateY(-8px); box-shadow: var(--sf-hover-shadow); border-color: rgba(67, 97, 238, 0.2); }
+        .sf-item-card:hover::before { transform: scaleX(1); }
+
+        .sf-status-badge { display: inline-flex; align-items: center; padding: 0.4rem 1rem; border-radius: 50px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; color: white; }
+        .sf-status-active { background: linear-gradient(135deg, #4cc9f0 0%, #4895ef 100%); }
+        .sf-status-disc { background: linear-gradient(135deg, #ef476f 0%, #f72585 100%); }
+
+        .sf-input { background: rgba(255,255,255,0.9); border: 2px solid #e9ecef; border-radius: 12px; padding: 0.875rem 1.25rem; font-size: 0.95rem; width: 100%; transition: all 0.3s; outline: none; }
+        .sf-input:focus { border-color: var(--sf-primary); box-shadow: 0 0 0 3px rgba(67,97,238,0.1); background: white; }
+        .sf-select { background: rgba(255,255,255,0.9); border: 2px solid #e9ecef; border-radius: 12px; padding: 0.875rem 1.25rem; font-size: 0.95rem; width: 100%; outline: none; cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%234361ee'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 1rem center; background-size: 1.5em; padding-right: 3rem; }
+        .sf-select:focus { border-color: var(--sf-primary); box-shadow: 0 0 0 3px rgba(67,97,238,0.1); background: white; }
+        
+        .sf-btn { display: inline-flex; align-items: center; justify-content: center; padding: 0.875rem 1.75rem; background: linear-gradient(135deg, var(--sf-primary) 0%, var(--sf-primary-dark) 100%); color: white; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; transition: all 0.3s; }
+        .sf-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(67,97,238,0.3); }
+
+        .sf-fab { position: fixed; bottom: 100px; right: 2rem; width: 60px; height: 60px; background: linear-gradient(135deg, var(--sf-primary) 0%, var(--sf-secondary) 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem; cursor: pointer; box-shadow: 0 8px 25px rgba(67,97,238,0.4); z-index: 100; transition: transform 0.3s; }
+        .sf-fab:hover { transform: scale(1.1); }
+
+        .sf-gradient-text { background: linear-gradient(135deg, var(--sf-primary) 0%, var(--sf-secondary) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        #sf-search-badge { background: linear-gradient(135deg, var(--sf-primary) 0%, var(--sf-secondary) 100%); color: white; box-shadow: 0 4px 15px rgba(67,97,238,0.3); animation: sf-glow 2s infinite alternate; }
+        @keyframes sf-glow { from { box-shadow: 0 4px 15px rgba(67,97,238,0.3); } to { box-shadow: 0 4px 20px rgba(67,97,238,0.5), 0 0 10px rgba(67,97,238,0.2); } }
+
+        /* =========================================
+           APP 2: FG VAULT (DARK VISION OS) CSS
+           ========================================= */
+        :root {
+            --fg-glass-panel: rgba(20, 20, 25, 0.65);
+            --fg-glass-border: rgba(255, 255, 255, 0.12);
+            --fg-glass-hover: rgba(255, 255, 255, 0.15);
+            --fg-obsolete: #FF4500; 
+            --fg-in-use: #00E676;   
+            --fg-spring: cubic-bezier(0.175, 0.885, 0.32, 1.1);
+        }
+
+        #app-fgvault { display: none; animation: sf-fadeIn 0.5s ease; color: white; }
+        
+        .fg-aurora-wrapper { position: fixed; inset: 0; z-index: -1; overflow: hidden; background: #000000; display: none; }
+        .fg-aurora-blob { position: absolute; border-radius: 50%; animation: aurora 15s infinite alternate ease-in-out; }
+        .fg-blob-1 { top: -20%; left: -20%; width: 70vw; height: 70vw; background: radial-gradient(circle, rgba(10,132,255,0.2) 0%, transparent 60%); }
+        .fg-blob-2 { bottom: -30%; right: -20%; width: 80vw; height: 80vw; background: radial-gradient(circle, rgba(94,92,230,0.15) 0%, transparent 60%); animation-delay: -5s; }
+        .fg-blob-3 { top: 30%; left: 40%; width: 60vw; height: 60vw; background: radial-gradient(circle, rgba(48,209,88,0.1) 0%, transparent 60%); animation-delay: -10s; }
+        @keyframes aurora { 0% { transform: translate3d(0,0,0) scale(1); } 100% { transform: translate3d(40px, 40px, 0) scale(1.1); } }
+
+        .fg-sticky-search { position: sticky; top: 0; z-index: 100; background: linear-gradient(to bottom, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.85) 75%, transparent 100%); backdrop-filter: blur(24px); padding: 12px 20px 16px 20px; }
+        .fg-search-pod { position: relative; background: rgba(255,255,255,0.06); border: 1px solid var(--fg-glass-border); border-radius: 20px; display: flex; align-items: center; padding: 4px; transition: 0.3s; }
+        .fg-search-pod:focus-within { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.3); box-shadow: 0 0 25px rgba(255,255,255,0.05); }
+        .fg-search-input { width: 100%; background: transparent; border: none; color: #FFF; padding: 14px 44px; font-size: 17px; outline: none; }
+        .fg-search-icon { position: absolute; left: 16px; color: rgba(255,255,255,0.4); font-size: 18px; }
+        .fg-clear-btn { position: absolute; right: 12px; color: rgba(255,255,255,0.4); background: transparent; border: none; padding: 8px; font-size: 20px; cursor: pointer; }
+
+        .fg-pill-scroll { display: flex; gap: 10px; overflow-x: auto; padding: 16px 0 4px 0; scrollbar-width: none; }
+        .fg-pill-scroll::-webkit-scrollbar { display: none; }
+        .fg-result-badge { background: linear-gradient(135deg, #0A84FF 0%, #5E5CE6 100%); color: #FFF; padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 800; white-space: nowrap; display: flex; align-items: center; gap: 8px; }
+        .fg-filter-pill { background: rgba(255,255,255,0.05); border: 1px solid var(--fg-glass-border); color: #AAA; padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 700; white-space: nowrap; cursor: pointer; transition: 0.2s; }
+        .fg-filter-pill.active { background: #FFF; color: #000; border-color: #FFF; }
+
+        .fg-dash-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
+        .fg-dash-card { background: var(--fg-glass-panel); border: 1px solid var(--fg-glass-border); border-radius: 20px; padding: 16px 12px; text-align: center; box-shadow: 0 8px 32px rgba(0,0,0,0.2); }
+        .fg-dash-num { font-size: 26px; font-weight: 900; line-height: 1; margin-bottom: 4px; }
+        .fg-dash-lbl { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.6; }
+
+        .fg-item-card { background: var(--fg-glass-panel); border: 1px solid var(--fg-glass-border); border-radius: 24px; padding: 18px; margin-bottom: 16px; display: flex; gap: 16px; position: relative; overflow: hidden; cursor: pointer; transition: 0.25s; }
+        .fg-item-card:hover { transform: translateY(-3px) scale(1.01); border-color: var(--fg-glass-hover); background: rgba(30,30,35,0.85); }
+        .fg-card-accent { position: absolute; left: 0; top: 0; bottom: 0; width: 4px; box-shadow: 2px 0 15px currentColor; }
+        .fg-icon-box { width: 56px; height: 56px; border-radius: 16px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; font-size: 24px; color: rgba(255,255,255,0.7); flex-shrink: 0; }
+        
+        .fg-floating-modal { position: fixed; bottom: 16px; left: 16px; right: 16px; z-index: 10000; background: rgba(18,18,22,0.95); border: 1px solid var(--fg-glass-border); backdrop-filter: blur(20px); border-radius: 32px; transform: translate3d(0, 120%, 0); transition: transform 0.4s var(--fg-spring); max-height: 85vh; display: flex; flex-direction: column; box-shadow: 0 30px 60px rgba(0,0,0,0.9); }
+        .fg-floating-modal.show { transform: translate3d(0, 0, 0); }
+        .fg-spec-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05); align-items: center; }
+        
+        .fg-fab { position: fixed; right: 20px; z-index: 800; width: 50px; height: 50px; border-radius: 25px; cursor: pointer; background: rgba(255,255,255,0.1); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.15); color: #FFF; display: flex; align-items: center; justify-content: center; font-size: 18px; transition: 0.2s; }
+    </style>
+</head>
+<body style="background-color: #f8f9fa;">
+
+    <nav id="master-nav" class="nav-light">
+        <button id="nav-sf" class="nav-btn active" onclick="switchApp('sf')">
+            <i class="fas fa-boxes-stacked"></i>
+            <span>Raw Materials</span>
+        </button>
+        <button id="nav-fg" class="nav-btn" onclick="switchApp('fg')">
+            <i class="fas fa-fingerprint"></i>
+            <span>Finished Goods</span>
+        </button>
+    </nav>
+
+
+    <div id="app-stockflow">
+        <div id="sf-loader" class="sf-loader">
+            <i class="fas fa-boxes-stacked text-5xl mb-6"></i>
+            <h1 class="text-3xl font-bold mb-2">StockFlow</h1>
+            <p class="text-white/80 text-sm mb-6">Syncing RM Database...</p>
+            <div class="sf-spinner"></div>
+        </div>
+
+        <div class="container mx-auto px-4 py-8 max-w-7xl">
+            <header class="mb-10 sf-animate-slide-in">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                    <div>
+                        <h1 class="text-3xl md:text-4xl font-black sf-gradient-text mb-2">RM Dashboard</h1>
+                        <p class="text-gray-600 text-sm md:text-base">Raw Material Inventory Management</p>
+                    </div>
+                    <button onclick="StockFlow.refreshData()" class="sf-btn">
+                        <i class="fas fa-sync-alt mr-2"></i> Refresh Data
+                    </button>
+                </div>
+            </header>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+                <div class="sf-glass-panel p-6 flex justify-between items-center">
+                    <div><p class="text-sm font-semibold text-gray-500 uppercase">Total Items</p><p class="text-3xl font-bold text-gray-800" id="sf-kpi-total">-</p></div>
+                    <div class="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600 text-xl"><i class="fas fa-box"></i></div>
+                </div>
+                <div class="sf-glass-panel p-6 flex justify-between items-center">
+                    <div><p class="text-sm font-semibold text-gray-500 uppercase">Active Stock</p><p class="text-3xl font-bold text-green-600" id="sf-kpi-active">-</p></div>
+                    <div class="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center text-green-600 text-xl"><i class="fas fa-check-circle"></i></div>
+                </div>
+                <div class="sf-glass-panel p-6 flex justify-between items-center">
+                    <div><p class="text-sm font-semibold text-gray-500 uppercase">Discontinued</p><p class="text-3xl font-bold text-red-600" id="sf-kpi-disc">-</p></div>
+                    <div class="w-12 h-12 rounded-xl bg-red-100 flex items-center justify-center text-red-600 text-xl"><i class="fas fa-times-circle"></i></div>
+                </div>
+                <div class="sf-glass-panel p-6 flex justify-between items-center">
+                    <div><p class="text-sm font-semibold text-gray-500 uppercase">Vendors</p><p class="text-3xl font-bold text-purple-600" id="sf-kpi-ven">-</p></div>
+                    <div class="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center text-purple-600 text-xl"><i class="fas fa-building"></i></div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10 hidden md:grid">
+                <div class="sf-glass-panel p-6">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4">Status Distribution</h3>
+                    <div class="h-64"><canvas id="sf-statusChart"></canvas></div>
+                </div>
+                <div class="sf-glass-panel p-6">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4">Top Categories</h3>
+                    <div class="h-64"><canvas id="sf-categoryChart"></canvas></div>
+                </div>
+            </div>
+
+            <div class="sf-glass-panel p-6 mb-10">
+                <h3 class="text-lg font-bold text-gray-800 mb-6"><i class="fas fa-filter text-blue-600 mr-2"></i> Search & Filter</h3>
+                <div class="relative mb-6">
+                    <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                    <input type="text" id="sf-search" class="sf-input pl-12" placeholder="Search RM items...">
+                    <div id="sf-search-badge" class="hidden absolute right-4 top-1/2 transform -translate-y-1/2 px-3 py-1.5 rounded-lg text-xs font-bold"><span id="sf-result-count">0</span> matches</div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <select id="sf-venFilter" class="sf-select"><option value="">All Vendors</option></select>
+                    <select id="sf-catFilter" class="sf-select"><option value="">All Categories</option></select>
+                    <select id="sf-statFilter" class="sf-select"><option value="">All Status</option><option value="In Use">Active</option><option value="Discontinued">Discontinued</option></select>
+                </div>
+            </div>
+
+            <div id="sf-results-section" class="hidden">
+                <h2 class="text-xl font-bold text-gray-800 mb-6">Inventory Items</h2>
+                <div id="sf-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+            </div>
+            
+            <div id="sf-empty" class="hidden text-center py-16 text-gray-400">
+                <i class="fas fa-search text-5xl opacity-30 mb-4 block"></i>
+                <h3 class="font-semibold text-xl">No items found</h3>
+            </div>
+        </div>
+
+        <button class="sf-fab" onclick="window.scrollTo(0,0)"><i class="fas fa-chevron-up"></i></button>
+
+        <div id="sf-modal" class="fixed inset-0 z-[30000] flex items-center justify-center p-4 hidden">
+            <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="StockFlow.closeModal()"></div>
+            <div class="bg-white w-full max-w-4xl rounded-2xl shadow-2xl relative flex flex-col max-h-[85vh]">
+                <div class="p-6 border-b border-gray-100 flex justify-between">
+                    <div>
+                        <span id="sf-mStatus" class="sf-status-badge mb-2"></span>
+                        <h2 id="sf-mTitle" class="text-2xl font-bold text-gray-800"></h2>
+                        <p id="sf-mVendor" class="text-blue-600 font-bold text-sm mt-1"></p>
+                    </div>
+                    <button onclick="StockFlow.closeModal()" class="w-10 h-10 bg-gray-100 rounded-full"><i class="fas fa-times"></i></button>
+                </div>
+                <div class="flex-grow overflow-y-auto p-6 bg-gray-50">
+                    <div class="grid grid-cols-2 gap-4 mb-6">
+                        <div class="bg-white p-4 rounded-xl border border-gray-200"><p class="text-xs text-gray-500 font-bold uppercase">Item Code</p><p id="sf-mCode" class="text-xl font-bold text-blue-900 font-mono"></p></div>
+                        <div class="bg-white p-4 rounded-xl border border-gray-200"><p class="text-xs text-gray-500 font-bold uppercase">Category</p><p id="sf-mCat" class="text-xl font-bold text-gray-800"></p></div>
+                    </div>
+                    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                        <h4 class="text-xs font-bold text-gray-500 uppercase bg-gray-100 px-4 py-3">All Data Fields</h4>
+                        <table class="w-full text-sm"><tbody id="sf-mTable" class="divide-y divide-gray-200"></tbody></table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="fg-aurora-wrapper" id="fg-aurora">
+        <div class="fg-aurora-blob fg-blob-1"></div>
+        <div class="fg-aurora-blob fg-blob-2"></div>
+        <div class="fg-aurora-blob fg-blob-3"></div>
+    </div>
+
+    <div id="app-fgvault">
+        <div class="px-5 pt-8 pb-4">
+            <div class="flex justify-between items-center mb-6">
+                <h1 class="text-3xl font-black text-white flex items-center gap-3"><i class="fas fa-fingerprint text-blue-500"></i> FG Vault</h1>
+                <div class="bg-white/10 px-4 py-1.5 rounded-full flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div><span class="text-xs font-bold text-gray-200" id="fg-godBadge">SYNCING</span></div>
+            </div>
+            <div class="fg-dash-grid">
+                <div class="fg-dash-card"><div class="fg-dash-num" id="fg-stat-total">-</div><div class="fg-dash-lbl">Total FG</div></div>
+                <div class="fg-dash-card" style="box-shadow: inset 0 -4px 0 #00E676;"><div class="fg-dash-num text-[#00E676]" id="fg-stat-act">-</div><div class="fg-dash-lbl">Active</div></div>
+                <div class="fg-dash-card" style="box-shadow: inset 0 -4px 0 #FF4500;"><div class="fg-dash-num text-[#FF4500]" id="fg-stat-obs">-</div><div class="fg-dash-lbl">Obsolete</div></div>
+            </div>
+        </div>
+
+        <div class="fg-sticky-search">
+            <div class="fg-search-pod">
+                <i class="fas fa-search fg-search-icon"></i>
+                <input type="text" id="fg-search" class="fg-search-input" placeholder="Search FG records...">
+                <button id="fg-clear" class="fg-clear-btn hidden"><i class="fas fa-times-circle"></i></button>
+            </div>
+            <div class="fg-pill-scroll">
+                <div id="fg-badge" class="fg-result-badge hidden"><i class="fas fa-layer-group"></i> <span id="fg-badge-txt">0 Found</span></div>
+                <button class="fg-filter-pill active" onclick="FGApp.setFilter('ALL', this)">All Items</button>
+                <button class="fg-filter-pill" onclick="FGApp.setFilter('IN USE', this)">Active Only</button>
+                <button class="fg-filter-pill" onclick="FGApp.setFilter('OBSOLETE', this)">Obsolete</button>
+            </div>
+        </div>
+
+        <div class="px-5 pb-10">
+            <div id="fg-welcome" class="text-center py-16 opacity-80"><i class="fas fa-database text-5xl text-gray-600 mb-4 block"></i><h3 class="text-xl font-bold text-white">Vault Connected</h3></div>
+            <div id="fg-list" class="hidden"></div>
+        </div>
+
+        <button class="fg-fab" style="bottom: 150px;" onclick="window.scrollTo(0,0)"><i class="fas fa-arrow-up"></i></button>
+
+        <div id="fg-backdrop" class="fixed inset-0 bg-black/80 backdrop-blur-md z-[30000] opacity-0 pointer-events-none transition-opacity" onclick="FGApp.closeModal()"></div>
+        <div id="fg-modal" class="fg-floating-modal z-[30001]">
+            <div class="flex justify-between items-start p-6 border-b border-white/10 bg-white/5 rounded-t-[32px]">
+                <div><span id="fg-mStatus" class="text-[10px] font-black px-2 py-1 rounded text-white mb-2 inline-block"></span><h2 id="fg-mName" class="text-xl font-black text-white mb-2"></h2><span id="fg-mCode" class="bg-blue-500/20 text-blue-300 font-mono text-xs font-bold px-2 py-1 rounded border border-blue-500/30"></span></div>
+                <button onclick="FGApp.closeModal()" class="w-8 h-8 rounded-full bg-white/10 text-white"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="flex-1 overflow-y-auto p-6">
+                <h4 class="text-[11px] font-black text-gray-500 uppercase mb-3">Technical Data</h4>
+                <div class="bg-black/30 border border-white/5 rounded-xl p-4 mb-4">
+                    <div class="fg-spec-row"><span class="fg-spec-lbl">Shape</span><span id="fg-mShape" class="text-white font-bold"></span></div>
+                    <div class="fg-spec-row"><span class="fg-spec-lbl">Body Dia</span><span id="fg-mDia" class="text-white font-bold"></span></div>
+                    <div class="fg-spec-row"><span class="fg-spec-lbl">Height</span><span id="fg-mHeight" class="text-white font-bold"></span></div>
+                    <div class="fg-spec-row"><span class="fg-spec-lbl">Weight</span><span id="fg-mWeight" class="text-white font-bold"></span></div>
+                    <div class="fg-spec-row"><span class="fg-spec-lbl">OFC</span><span id="fg-mOfc" class="text-white font-bold"></span></div>
+                </div>
+                <h4 class="text-[11px] font-black text-gray-500 uppercase mb-3">Packaging Matrix</h4>
+                <div class="bg-black/30 border border-white/5 rounded-xl p-4 mb-6">
+                    <div class="fg-spec-row"><span class="fg-spec-lbl">Direction</span><span id="fg-mDir" class="text-gray-300"></span></div>
+                    <div class="fg-spec-row"><span class="fg-spec-lbl">CB Size</span><span id="fg-mCB" class="text-gray-300"></span></div>
+                    <div class="fg-spec-row"><span class="fg-spec-lbl">Pouch Size</span><span id="fg-mPouch" class="text-gray-300"></span></div>
+                    <div class="fg-spec-row"><span class="fg-spec-lbl">Matrix/Tray</span><span id="fg-mMat" class="text-gray-300"></span></div>
+                    <div class="fg-spec-row border-t border-white/10 pt-3 mt-1"><span class="fg-spec-lbl text-white">Total Pcs</span><span id="fg-mTotal" class="text-xl font-black text-white"></span></div>
+                </div>
+                <button class="w-full bg-green-600 text-white font-bold py-3 rounded-xl mb-4" onclick="FGApp.share()"><i class="fas fa-share-nodes mr-2"></i> Share Specs</button>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        /* === UI SWITCHER LOGIC === */
+        function switchApp(appType) {
+            const body = document.body;
+            const nav = document.getElementById('master-nav');
+            
+            if(appType === 'sf') {
+                $('#app-fgvault').hide();
+                $('#fg-aurora').hide();
+                $('#app-stockflow').show();
+                body.style.backgroundColor = '#f8f9fa';
+                body.style.color = '#1a1a2e';
+                nav.className = 'nav-light';
+                $('#nav-sf').addClass('active'); $('#nav-fg').removeClass('active');
+            } else {
+                $('#app-stockflow').hide();
+                $('#fg-aurora').show();
+                $('#app-fgvault').show();
+                body.style.backgroundColor = '#000000';
+                body.style.color = '#ffffff';
+                nav.className = 'nav-dark';
+                $('#nav-fg').addClass('active'); $('#nav-sf').removeClass('active');
+            }
+            window.scrollTo(0,0);
+        }
+
+        /* === APP 1: STOCKFLOW (RAW MATERIALS) ENGINE === */
+        const StockFlow = (function() {
+            const FILE = 'RM.xlsx';
+            let db = [];
+            let filters = { s: '', v: '', c: '', st: '' };
+
+            async function init() {
+                try {
+                    const res = await fetch(FILE + '?t=' + Date.now());
+                    const wb = XLSX.read(await res.arrayBuffer());
+                    const raw = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {defval:""});
+                    db = raw.map((r, i) => ({
+                        id: r['ID'] || i, status: r['Status']||'Unknown',
+                        cat: r['Material List::Material_Detail'] || r['Category'] || 'Gen',
+                        code: r['Item_Code'] || r['Item Code'] || '-',
+                        name: r['Item_Name'] || r['Item Name'] || '-',
+                        vendor: r['Vendor List 2::Vendor_Name'] || r['Vendor'] || '-',
+                        full: r, str: Object.values(r).join(' ').toLowerCase()
+                    }));
+                    buildDash();
+                    $('#sf-loader').fadeOut();
+                } catch(e) { console.log("SF Data missing"); $('#sf-loader').html("<div class='p-5'><h3>RM.xlsx Missing</h3></div>"); }
+
+                $('#sf-search').on('input', e => { filters.s = e.target.value.toLowerCase(); apply(); });
+                $('#sf-venFilter').on('change', e => { filters.v = e.target.value; apply(); });
+                $('#sf-catFilter').on('change', e => { filters.c = e.target.value; apply(); });
+                $('#sf-statFilter').on('change', e => { filters.st = e.target.value; apply(); });
+            }
+
+            function buildDash() {
+                let act=0, disc=0, vens=new Set(), cats=new Set();
+                db.forEach(i => { i.status.includes('Use')?act++:disc++; vens.add(i.vendor); cats.add(i.cat); });
+                $('#sf-kpi-total').text(db.length); $('#sf-kpi-active').text(act); $('#sf-kpi-disc').text(disc); $('#sf-kpi-ven').text(vens.size);
+                vens.forEach(v => $('#sf-venFilter').append(`<option>${v}</option>`));
+                cats.forEach(c => $('#sf-catFilter').append(`<option>${c}</option>`));
+            }
+
+            function apply() {
+                if(!filters.s && !filters.v && !filters.c && !filters.st) {
+                    $('#sf-results-section, #sf-empty').hide(); return;
+                }
+                const res = db.filter(i => (!filters.s || i.str.includes(filters.s)) && (!filters.v || i.vendor===filters.v) && (!filters.c || i.cat===filters.c) && (!filters.st || i.status.includes(filters.st)));
+                $('#sf-search-badge').show(); $('#sf-result-count').text(res.length);
+                
+                const grid = $('#sf-grid').empty();
+                if(res.length===0) { $('#sf-results-section').hide(); $('#sf-empty').show(); return; }
+                
+                $('#sf-empty').hide(); $('#sf-results-section').show();
+                res.slice(0,50).forEach(i => {
+                    grid.append(`
+                        <div class="sf-item-card" onclick="StockFlow.openModal(${i.id})">
+                            <div class="flex justify-between mb-2"><span class="sf-status-badge ${i.status.includes('Use')?'sf-status-active':'sf-status-disc'}">${i.status}</span><span class="text-xs font-mono text-gray-400">#${i.id}</span></div>
+                            <h3 class="font-bold text-lg mb-2">${i.name}</h3>
+                            <span class="bg-blue-100 text-blue-800 font-mono text-xs px-2 py-1 rounded">${i.code}</span>
+                            <div class="mt-4 pt-3 border-t text-sm flex justify-between"><span class="text-gray-500">${i.cat}</span><span class="font-semibold">${i.vendor}</span></div>
+                        </div>`);
+                });
+            }
+
+            function openModal(id) {
+                const i = db.find(x => x.id === id); if(!i) return;
+                $('#sf-mTitle').text(i.name); $('#sf-mVendor').text(i.vendor); $('#sf-mCode').text(i.code); $('#sf-mCat').text(i.cat);
+                $('#sf-mStatus').text(i.status).attr('class', 'sf-status-badge ' + (i.status.includes('Use')?'sf-status-active':'sf-status-disc'));
+                const t = $('#sf-mTable').empty();
+                Object.entries(i.full).forEach(([k,v]) => { if(v) t.append(`<tr><td class="py-2 px-4 bg-gray-50 font-semibold w-1/3">${k}</td><td class="py-2 px-4">${v}</td></tr>`); });
+                $('#sf-modal').removeClass('hidden');
+            }
+
+            return { init, openModal, closeModal: ()=>$('#sf-modal').addClass('hidden'), refreshData: ()=>location.reload() };
+        })();
+
+        /* === APP 2: FG VAULT (FINISHED GOODS) ENGINE === */
+        const FGApp = (function() {
+            const FILE = 'FGVAULT.xlsx';
+            let db = [];
+            let currentFilter = 'ALL';
+
+            async function init() {
+                try {
+                    const res = await fetch(encodeURI(FILE) + '?t=' + Date.now());
+                    const wb = XLSX.read(await res.arrayBuffer());
+                    const raw = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {defval:""});
+                    
+                    let act=0, obs=0;
+                    db = raw.map((r, i) => {
+                        const stat = String(r["STATUS"]||"").toUpperCase() === 'OBSOLETE' ? 'OBSOLETE' : 'IN USE';
+                        if(stat==='OBSOLETE') obs++; else act++;
+                        const name = String(r["Item Name"]||"-"); const code = String(r["Item Code"]||"-");
+                        return {
+                            id: i, stat, color: stat==='OBSOLETE'?'#FF4500':'#00E676',
+                            name, code, old: r["Old Item Code"]||"",
+                            shape: r["Technical DataSheet::Product Shape"]||"-",
+                            dia: r["Technical DataSheet::Body Dia Major"]||"-",
+                            height: r["Technical DataSheet::Total Height"]||"-",
+                            weight: r["Technical DataSheet::Weight"]||"-",
+                            ofc: r["Technical DataSheet::OFC"]||"-",
+                            dir: r["List of Matrix::Packing Direction of Bottles"]||"-",
+                            cb: r["Corrugated Box Size"]||"-",
+                            pouch: r["Pouch Size"]||"-",
+                            mat: r["List of Matrix::Packing Matrix per Tray"]||"-",
+                            totPouch: r["List of Matrix::Total Pouch Used"]||"0",
+                            totPcs: r["List of Matrix::Total Pcs"]||"0",
+                            str: `${name} ${code} ${r["Old Item Code"]||""}`.toLowerCase()
+                        };
+                    });
+                    $('#fg-stat-total').text(db.length); $('#fg-stat-act').text(act); $('#fg-stat-obs').text(obs);
+                    $('#fg-godBadge').text(`${db.length} RECORDS`);
+                } catch(e) { $('#fg-godBadge').text('ERROR').css('color','red'); }
+
+                $('#fg-search').on('input', e => { 
+                    $('#fg-clear').toggle(!!e.target.value);
+                    apply(); 
+                });
+                $('#fg-clear').on('click', () => { $('#fg-search').val(''); $('#fg-clear').hide(); apply(); });
+            }
+
+            function setFilter(f, btn) {
+                currentFilter = f;
+                $('.fg-filter-pill').removeClass('active'); $(btn).addClass('active');
+                apply();
+            }
+
+            function apply() {
+                const s = $('#fg-search').val().toLowerCase().trim();
+                if(!s && currentFilter==='ALL') { $('#fg-list, #fg-badge').hide(); $('#fg-welcome').show(); return; }
+                
+                const res = db.filter(i => (!s || i.str.includes(s)) && (currentFilter==='ALL' || i.stat===currentFilter));
+                $('#fg-welcome').hide(); $('#fg-list').show();
+                $('#fg-badge').show(); $('#fg-badge-txt').text(`${res.length} Found`);
+
+                const list = $('#fg-list').empty();
+                if(res.length===0) { list.html("<div class='text-center py-10 text-gray-500'>No results</div>"); return; }
+
+                res.slice(0,100).forEach(i => {
+                    list.append(`
+                        <div class="fg-item-card" onclick="FGApp.openModal(${i.id})">
+                            <div class="fg-card-accent" style="color:${i.color}; background:${i.color}"></div>
+                            <div class="fg-icon-box"><i class="fas fa-cube"></i></div>
+                            <div class="flex-1">
+                                <h3 class="font-bold text-white mb-2 leading-tight">${i.name}</h3>
+                                <span class="bg-black/50 text-gray-300 font-mono text-xs px-2 py-1 rounded border border-white/10">${i.code}</span>
+                            </div>
+                            <div class="flex flex-col items-end justify-center border-l border-white/10 pl-3 w-16">
+                                <span class="text-xl font-black text-white">${i.totPcs}</span>
+                                <span class="text-[8px] uppercase text-gray-500 font-bold">Pcs</span>
+                            </div>
+                        </div>`);
+                });
+            }
+
+            function openModal(id) {
+                const i = db.find(x => x.id === id); if(!i) return;
+                $('#fg-mStatus').text(i.stat).css({background: i.color, boxShadow: `0 2px 10px ${i.color}60`});
+                $('#fg-mName').text(i.name); $('#fg-mCode').text(i.code);
+                $('#fg-mShape').text(i.shape); $('#fg-mDia').text(i.dia); $('#fg-mHeight').text(i.height); $('#fg-mWeight').text(i.weight); $('#fg-mOfc').text(i.ofc);
+                $('#fg-mDir').text(i.dir); $('#fg-mCB').text(i.cb); $('#fg-mPouch').text(i.pouch); $('#fg-mMat').text(i.mat); $('#fg-mTotal').text(i.totPcs);
+                
+                $('#fg-backdrop').css({opacity:1, pointerEvents:'auto'});
+                $('#fg-modal').addClass('show');
+            }
+
+            function closeModal() {
+                $('#fg-modal').removeClass('show');
+                $('#fg-backdrop').css({opacity:0, pointerEvents:'none'});
+            }
+
+            return { init, setFilter, openModal, closeModal, share: ()=>alert('Share feature active in native wrapper') };
+        })();
+
+        // BOOTSTRAP BOTH APPS
+        $(document).ready(() => {
+            StockFlow.init();
+            FGApp.init();
+        });
+    </script>
+</body>
+</html>
