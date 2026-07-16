@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>UniApp Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Base Shell Styles */
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; font-family: -apple-system, sans-serif; background: #f8f9fa; transition: background 0.4s ease; }
+        
+        /* The Invisible Boxes holding your apps */
+        .app-frame { border: none; width: 100%; height: calc(100% - 70px); position: absolute; top: 0; left: 0; transition: opacity 0.3s ease; }
+        #frame-a { z-index: 10; opacity: 1; pointer-events: auto; }
+        #frame-b { z-index: 5; opacity: 0; pointer-events: none; }
+
+        /* The Bottom Navigation Bar */
+        #bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; height: 70px; display: flex; z-index: 100; transition: all 0.4s ease; padding-bottom: env(safe-area-inset-bottom); }
+        
+        .nav-btn { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; background: none; border: none; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; cursor: pointer; transition: 0.3s; }
+        .nav-btn i { font-size: 22px; margin-bottom: 4px; transition: transform 0.2s; }
+        .nav-btn:active i { transform: scale(0.8); }
+
+        /* Light Theme (For App A) */
+        .theme-light { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border-top: 1px solid rgba(0,0,0,0.1); }
+        .theme-light .nav-btn { color: #94a3b8; }
+        .theme-light .nav-btn.active { color: #4361ee; }
+
+        /* Dark Theme (For App B) */
+        .theme-dark { background: rgba(10, 10, 15, 0.9); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border-top: 1px solid rgba(255,255,255,0.1); }
+        .theme-dark .nav-btn { color: #64748b; }
+        .theme-dark .nav-btn.active { color: #00E676; text-shadow: 0 0 10px rgba(0,230,118,0.4); }
+    </style>
+</head>
+<body>
+
+    <iframe id="frame-a" class="app-frame" src="rm.html"></iframe>
+    
+    <iframe id="frame-b" class="app-frame" src="fg.html"></iframe>
+
+    <nav id="bottom-nav" class="theme-light">
+        <button id="btn-a" class="nav-btn active" onclick="switchApp('a')">
+            <i class="fas fa-boxes-stacked"></i>
+            <span>Raw Materials</span>
+        </button>
+        <button id="btn-b" class="nav-btn" onclick="switchApp('b')">
+            <i class="fas fa-fingerprint"></i>
+            <span>FG Vault</span>
+        </button>
+    </nav>
+
+    <script>
+        function switchApp(app) {
+            const frameA = document.getElementById('frame-a');
+            const frameB = document.getElementById('frame-b');
+            const btnA = document.getElementById('btn-a');
+            const btnB = document.getElementById('btn-b');
+            const nav = document.getElementById('bottom-nav');
+
+            if (app === 'a') {
+                // Show App A (StockFlow)
+                frameA.style.opacity = '1'; frameA.style.pointerEvents = 'auto'; frameA.style.zIndex = '10';
+                frameB.style.opacity = '0'; frameB.style.pointerEvents = 'none'; frameB.style.zIndex = '5';
+                
+                // Switch to Light Theme
+                btnA.classList.add('active'); btnB.classList.remove('active');
+                nav.className = 'theme-light';
+                document.body.style.background = '#f8f9fa';
+            } else {
+                // Show App B (FG Vault)
+                frameB.style.opacity = '1'; frameB.style.pointerEvents = 'auto'; frameB.style.zIndex = '10';
+                frameA.style.opacity = '0'; frameA.style.pointerEvents = 'none'; frameA.style.zIndex = '5';
+                
+                // Switch to Dark Theme
+                btnB.classList.add('active'); btnA.classList.remove('active');
+                nav.className = 'theme-dark';
+                document.body.style.background = '#000000';
+            }
+        }
+    </script>
+</body>
+</html>

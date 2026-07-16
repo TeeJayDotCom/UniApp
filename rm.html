@@ -1,0 +1,1489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>StockFlow | Inventory Dashboard</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+    <style>
+        :root {
+            --primary: #4361ee;
+            --primary-light: #4895ef;
+            --primary-dark: #3a0ca3;
+            --secondary: #7209b7;
+            --success: #4cc9f0;
+            --warning: #f72585;
+            --danger: #ef476f;
+            --surface: #ffffff;
+            --background: #f8f9fa;
+            --text-primary: #1a1a2e;
+            --text-secondary: #6c757d;
+            --border: #e9ecef;
+            --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            --hover-shadow: 0 10px 40px rgba(0, 0, 0, 0.12);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--background);
+            color: var(--text-primary);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary-light);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary);
+        }
+
+        /* Loader Animation */
+        #loader {
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.5s ease-out;
+        }
+
+        .loader-content {
+            text-align: center;
+            color: white;
+        }
+
+        .loader-logo {
+            font-size: 3.5rem;
+            margin-bottom: 2rem;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 3px solid rgba(255, 255, 255, 0.2);
+            border-top: 3px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 2rem auto;
+        }
+
+        /* Glass Morphism */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 20px;
+            box-shadow: var(--card-shadow);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .glass-panel:hover {
+            box-shadow: var(--hover-shadow);
+            transform: translateY(-2px);
+        }
+
+        /* Modern Card */
+        .item-card {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9ff 100%);
+            border-radius: 16px;
+            padding: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: var(--card-shadow);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .item-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary) 0%, var(--success) 100%);
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.4s ease;
+        }
+
+        .item-card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--hover-shadow);
+            border-color: rgba(67, 97, 238, 0.2);
+        }
+
+        .item-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        /* Status Badges */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.4rem 1rem;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .status-badge::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.2);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .status-badge:hover::before {
+            opacity: 1;
+        }
+
+        .status-active {
+            background: linear-gradient(135deg, #4cc9f0 0%, #4895ef 100%);
+            color: white;
+        }
+
+        .status-discontinued {
+            background: linear-gradient(135deg, #ef476f 0%, #f72585 100%);
+            color: white;
+        }
+
+        /* Modern Inputs */
+        .modern-input {
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 0.875rem 1.25rem;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            color: var(--text-primary);
+        }
+
+        .modern-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+            background: white;
+        }
+
+        .modern-select {
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 0.875rem 1.25rem;
+            font-size: 0.95rem;
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%234361ee'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 1.5em;
+            padding-right: 3rem;
+        }
+
+        .modern-select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+            background-color: white;
+        }
+
+        /* Modern Button */
+        .modern-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.875rem 1.75rem;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .modern-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .modern-btn:hover::before {
+            left: 100%;
+        }
+
+        .modern-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(67, 97, 238, 0.3);
+        }
+
+        /* Floating Action Button */
+        .fab {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: 0 8px 25px rgba(67, 97, 238, 0.4);
+            transition: all 0.3s ease;
+            z-index: 100;
+        }
+
+        .fab:hover {
+            transform: scale(1.1);
+            box-shadow: 0 12px 35px rgba(67, 97, 238, 0.5);
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .animate-slide-in {
+            animation: slideIn 0.5s ease-out;
+        }
+
+        /* Chart Container */
+        .chart-container {
+            background: white;
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: var(--card-shadow);
+            transition: all 0.3s ease;
+        }
+
+        .chart-container:hover {
+            box-shadow: var(--hover-shadow);
+        }
+
+        /* Gradient Text */
+        .gradient-text {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Utility Classes */
+        .hover-lift {
+            transition: transform 0.3s ease;
+        }
+        .hover-lift:hover {
+            transform: translateY(-4px);
+        }
+
+        /* Toast Animation */
+        .toast-enter {
+            animation: toastSlideIn 0.3s ease-out forwards;
+        }
+
+        .toast-exit {
+            animation: toastSlideOut 0.3s ease-in forwards;
+        }
+
+        @keyframes toastSlideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes toastSlideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .item-card {
+                padding: 1.25rem;
+            }
+            
+            .glass-panel {
+                border-radius: 16px;
+            }
+            
+            .fab {
+                bottom: 1.5rem;
+                right: 1.5rem;
+                width: 50px;
+                height: 50px;
+                font-size: 1.25rem;
+            }
+        }
+
+        /* Glowing search badge */
+        #search-badge {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(67, 97, 238, 0.3);
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from {
+                box-shadow: 0 4px 15px rgba(67, 97, 238, 0.3);
+            }
+            to {
+                box-shadow: 0 4px 20px rgba(67, 97, 238, 0.5), 0 0 10px rgba(67, 97, 238, 0.2);
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+    
+    <div id="loader" class="flex flex-col items-center justify-center">
+        <div class="loader-content">
+            <div class="loader-logo">
+                <i class="fas fa-boxes-stacked"></i>
+            </div>
+            <h1 class="text-3xl font-bold mb-2">StockFlow</h1>
+            <p class="text-white/80 text-sm mb-6">Loading Inventory Dashboard</p>
+            <div class="spinner"></div>
+            <div class="mt-8">
+                <div class="w-64 h-2 bg-white/20 rounded-full overflow-hidden">
+                    <div id="progressFill" class="h-full bg-white transition-all duration-300" style="width: 0%"></div>
+                </div>
+                <p class="text-white/70 text-xs mt-2">Initializing system...</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mx-auto px-4 py-8 max-w-7xl">
+        
+        <header class="mb-10 animate-slide-in">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                <div>
+                    <h1 class="text-3xl md:text-4xl font-black gradient-text mb-2">StockFlow Dashboard</h1>
+                    <p class="text-gray-600 text-sm md:text-base">Real-time inventory management & analytics</p>
+                </div>
+                <div class="flex items-center gap-4">
+                    <button onclick="refreshData()" class="modern-btn">
+                        <i class="fas fa-sync-alt mr-2"></i>
+                        <span>Refresh Data</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10 animate-fade-in">
+            <div class="glass-panel p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <p class="text-sm font-semibold text-gray-500 uppercase tracking-wide">Total Items</p>
+                        <p class="text-3xl font-bold text-gray-800 mt-1" id="kpi-total">-</p>
+                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center">
+                        <i class="fas fa-box text-blue-600 text-xl"></i>
+                    </div>
+                </div>
+                <div class="text-xs text-gray-500">Across all categories</div>
+            </div>
+
+            <div class="glass-panel p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <p class="text-sm font-semibold text-gray-500 uppercase tracking-wide">Active Stock</p>
+                        <p class="text-3xl font-bold text-green-600 mt-1" id="kpi-active">-</p>
+                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-green-100 to-green-200 flex items-center justify-center">
+                        <i class="fas fa-check-circle text-green-600 text-xl"></i>
+                    </div>
+                </div>
+                <div class="text-xs text-gray-500">Currently in use</div>
+            </div>
+
+            <div class="glass-panel p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <p class="text-sm font-semibold text-gray-500 uppercase tracking-wide">Discontinued</p>
+                        <p class="text-3xl font-bold text-red-600 mt-1" id="kpi-discontinued">-</p>
+                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-red-100 to-red-200 flex items-center justify-center">
+                        <i class="fas fa-times-circle text-red-600 text-xl"></i>
+                    </div>
+                </div>
+                <div class="text-xs text-gray-500">No longer in use</div>
+            </div>
+
+            <div class="glass-panel p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <p class="text-sm font-semibold text-gray-500 uppercase tracking-wide">Vendors</p>
+                        <p class="text-3xl font-bold text-purple-600 mt-1" id="kpi-vendors">-</p>
+                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-100 to-purple-200 flex items-center justify-center">
+                        <i class="fas fa-building text-purple-600 text-xl"></i>
+                    </div>
+                </div>
+                <div class="text-xs text-gray-500">Unique suppliers</div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10 animate-fade-in">
+            <div class="chart-container">
+                <div class="flex items-center justify-between mb-6">
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-800">Inventory Status</h3>
+                        <p class="text-sm text-gray-500">Distribution of active vs discontinued items</p>
+                    </div>
+                    <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
+                        <i class="fas fa-chart-pie text-blue-600"></i>
+                    </div>
+                </div>
+                <div class="h-64">
+                    <canvas id="statusChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <div class="flex items-center justify-between mb-6">
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-800">Top Categories</h3>
+                        <p class="text-sm text-gray-500">Most populated material categories</p>
+                    </div>
+                    <div class="w-10 h-10 rounded-lg bg-purple-50 flex items-center justify-center">
+                        <i class="fas fa-chart-bar text-purple-600"></i>
+                    </div>
+                </div>
+                <div class="h-64">
+                    <canvas id="categoryChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="mb-10 animate-slide-in">
+            <div class="glass-panel p-6">
+                <h3 class="text-lg font-bold text-gray-800 mb-6 flex items-center">
+                    <i class="fas fa-filter mr-3 text-primary"></i>
+                    Search & Filter Inventory
+                </h3>
+                
+                <div class="relative mb-6">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <i class="fas fa-search text-gray-400"></i>
+                    </div>
+                    <input type="text" id="searchInput" class="modern-input w-full pl-12" placeholder="Search items, codes, descriptions, vendors...">
+                    <div id="search-badge" class="hidden absolute right-4 top-1/2 transform -translate-y-1/2 px-3 py-1.5 bg-gradient-to-r from-primary to-primary-dark text-white rounded-lg text-xs font-bold whitespace-nowrap shadow-lg shadow-primary/30">
+                        <span id="result-count">0</span> matches
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Vendor</label>
+                        <select id="vendorFilter" class="modern-select w-full">
+                            <option value="">All Vendors</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Category</label>
+                        <select id="categoryFilter" class="modern-select w-full">
+                            <option value="">All Categories</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Status</label>
+                        <select id="statusFilter" class="modern-select w-full">
+                            <option value="">All Status</option>
+                            <option value="In Use">Active</option>
+                            <option value="Discontinued">Discontinued</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-4 mt-6 pt-6 border-t border-gray-100">
+                    <button onclick="clearFilters()" class="px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-lg transition-colors">
+                        <i class="fas fa-filter-circle-xmark mr-2"></i>
+                        Clear All Filters
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="results-section" class="hidden animate-fade-in">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                <h2 class="text-xl font-bold text-gray-800">Inventory Items</h2>
+                <div class="flex items-center gap-4">
+                    <div class="text-sm text-gray-600">
+                        Showing <span id="visible-count" class="font-bold text-primary">0</span> of 
+                        <span id="total-count" class="font-bold">0</span> items
+                    </div>
+                </div>
+            </div>
+
+            <div id="results-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                </div>
+
+            <div id="empty-state" class="hidden flex flex-col items-center justify-center py-16 text-gray-400">
+                <div class="w-32 h-32 bg-gradient-to-br from-gray-100 to-gray-50 rounded-full flex items-center justify-center mb-6">
+                    <i class="fas fa-search text-5xl opacity-30"></i>
+                </div>
+                <h3 class="font-semibold text-xl mb-3">No items found</h3>
+                <p class="text-center max-w-md mb-6">Try adjusting your search or filters to find what you're looking for.</p>
+                <button onclick="clearFilters()" class="modern-btn">
+                    <i class="fas fa-filter-circle-xmark mr-2"></i>
+                    Clear Filters
+                </button>
+            </div>
+        </div>
+
+        <div class="fab" onclick="scrollToTop()" title="Scroll to top">
+            <i class="fas fa-chevron-up"></i>
+        </div>
+    </div>
+
+    <div id="detailModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden">
+        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity duration-300" onclick="closeModal()"></div>
+        <div class="bg-white w-full max-w-6xl rounded-2xl shadow-2xl relative flex flex-col max-h-[90vh] animate-fade-in">
+            
+            <div class="p-8 border-b border-gray-100">
+                <div class="flex justify-between items-start">
+                    <div class="flex-1 pr-8">
+                        <div class="flex items-center gap-3 mb-4">
+                            <span id="mId" class="text-xs font-mono bg-gray-100 text-gray-600 px-3 py-1.5 rounded-full">#ID</span>
+                            <span id="mStatus" class="status-badge"></span>
+                        </div>
+                        <h2 id="mTitle" class="text-2xl font-bold text-gray-800 leading-tight mb-3">Item Name</h2>
+                        <div class="flex items-center gap-4 text-sm">
+                            <span id="mVendor" class="font-semibold text-primary flex items-center gap-2">
+                                <i class="fas fa-building"></i>
+                                <span>Vendor</span>
+                            </span>
+                        </div>
+                    </div>
+                    <button onclick="closeModal()" class="w-12 h-12 rounded-full bg-gray-100 text-gray-400 hover:bg-red-50 hover:text-red-500 flex items-center justify-center transition-all duration-300">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex-grow overflow-y-auto p-8">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div class="space-y-6">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="bg-gradient-to-br from-blue-50 to-blue-100 p-5 rounded-xl border border-blue-200">
+                                <p class="text-xs font-semibold text-blue-600 uppercase tracking-wide mb-2">Item Code</p>
+                                <p id="mCode" class="text-xl font-bold text-blue-900 font-mono">-</p>
+                            </div>
+                            <div class="bg-gradient-to-br from-gray-50 to-gray-100 p-5 rounded-xl border border-gray-200">
+                                <p class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">Category</p>
+                                <p id="mCategory" class="text-xl font-bold text-gray-800">-</p>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h4 class="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                                <i class="fas fa-sticky-note"></i>
+                                <span>Remarks</span>
+                            </h4>
+                            <div class="bg-gradient-to-br from-amber-50 to-amber-100 border border-amber-200 p-5 rounded-xl">
+                                <p id="mRemarks" class="text-sm text-gray-700 leading-relaxed">No remarks provided.</p>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h4 class="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                                <i class="fas fa-info-circle"></i>
+                                <span>Key Details</span>
+                            </h4>
+                            <div class="grid grid-cols-2 gap-3" id="mQuickDetails"></div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 class="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                            <i class="fas fa-table"></i>
+                            <span>All Data Fields</span>
+                        </h4>
+                        <div class="bg-gray-50 rounded-xl overflow-hidden border border-gray-200 max-h-[400px] overflow-y-auto">
+                            <table class="w-full text-sm">
+                                <tbody id="mRawTable" class="divide-y divide-gray-200"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-6 border-t border-gray-100 bg-gray-50/50 rounded-b-2xl flex justify-between items-center">
+                <div class="text-sm text-gray-500" id="mTimestamp"></div>
+                <div class="flex gap-3">
+                    <button onclick="copyItemDetails()" class="px-4 py-3 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-semibold rounded-lg shadow-sm transition-all duration-300 flex items-center gap-2">
+                        <i class="fab fa-whatsapp text-lg"></i>
+                        <span>Copy for WhatsApp</span>
+                    </button>
+                    <button onclick="closeModal()" class="px-5 py-2.5 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 font-semibold rounded-lg shadow-sm transition-all duration-300">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="fixed top-8 right-8 z-50 px-6 py-4 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl shadow-xl hidden">
+        <div class="flex items-center gap-3">
+            <i class="fas fa-check-circle text-lg"></i>
+            <span id="toast-message" class="font-medium">Operation completed</span>
+        </div>
+    </div>
+
+    <script>
+        // App Configuration
+        const CONFIG = {
+            FILENAME: 'RM.xlsx',
+            ITEMS_PER_PAGE: 50,
+            DEBOUNCE_DELAY: 300
+        };
+
+        // App State
+        const AppState = {
+            inventory: [],
+            filteredItems: [],
+            activeFilters: {
+                search: '',
+                vendor: '',
+                category: '',
+                status: ''
+            },
+            charts: {},
+            currentModalItem: null,
+            hasUserInteracted: false
+        };
+
+        // Initialize App
+        $(document).ready(() => {
+            simulateLoading();
+            loadData(CONFIG.FILENAME);
+            setupEventListeners();
+        });
+
+        // Loading Animation
+        function simulateLoading() {
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += Math.random() * 20;
+                if (progress >= 100) {
+                    progress = 100;
+                    clearInterval(interval);
+                }
+                $('#progressFill').css('width', `${progress}%`);
+            }, 200);
+        }
+
+        // Data Loading
+        async function loadData(filename) {
+            try {
+                const response = await fetch(`${filename}?t=${Date.now()}`);
+                if (!response.ok) throw new Error('File not found');
+                
+                const arrayBuffer = await response.arrayBuffer();
+                const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+                const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+                const rawData = XLSX.utils.sheet_to_json(worksheet);
+                
+                processInventoryData(rawData);
+                showToast('Inventory data loaded successfully');
+            } catch (error) {
+                console.error('Load error:', error);
+                showToast('Failed to load data. Please check console.', 'error');
+                setTimeout(() => $('#loader').fadeOut(), 1000);
+            }
+        }
+
+        // Process Data
+        function processInventoryData(rawData) {
+            AppState.inventory = rawData.map((row, index) => {
+                const item = {
+                    id: row['ID'] || index + 1,
+                    status: row['Status'] || 'Unknown',
+                    category: row['Material List::Material_Detail'] || row['Category'] || 'General',
+                    code: row['Item_Code'] || row['Item Code'] || 'N/A',
+                    name: row['Item_Name'] || row['Item Name'] || 'Unnamed Item',
+                    vendor: row['Vendor List 2::Vendor_Name'] || row['Vendor'] || 'Unknown Vendor',
+                    remarks: row['Remarks'] || '',
+                    timestamp: row['Last_Updated'] || new Date().toISOString().split('T')[0],
+                    rawData: row,
+                    searchableText: Object.values(row)
+                        .map(val => String(val || '').toLowerCase().replace(/\s+/g, ' '))
+                        .join(' ')
+                };
+                
+                // Add all fields
+                Object.keys(row).forEach(key => {
+                    if (!['ID', 'Status', 'Category', 'Item_Code', 'Item_Name', 'Vendor', 'Remarks'].includes(key)) {
+                        item[key] = row[key];
+                    }
+                });
+                
+                return item;
+            });
+            
+            initializeDashboard();
+            $('#loader').fadeOut(500);
+        }
+
+        // Initialize Dashboard
+        function initializeDashboard() {
+            updateKPIs();
+            initializeFilters();
+            initializeCharts();
+        }
+
+        function initializeFilters() {
+            // Get unique vendors
+            const vendors = [...new Set(AppState.inventory
+                .map(item => item.vendor)
+                .filter(vendor => vendor && vendor.trim() !== '')
+            )].sort();
+            
+            // Get unique categories
+            const categories = [...new Set(AppState.inventory
+                .map(item => item.category)
+                .filter(category => category && category.trim() !== '')
+            )].sort();
+            
+            // Populate vendor dropdown
+            const vendorFilter = $('#vendorFilter');
+            vendorFilter.empty();
+            vendorFilter.append('<option value="">All Vendors</option>');
+            vendors.forEach(vendor => {
+                vendorFilter.append(`<option value="${vendor}">${vendor}</option>`);
+            });
+            
+            // Populate category dropdown
+            const categoryFilter = $('#categoryFilter');
+            categoryFilter.empty();
+            categoryFilter.append('<option value="">All Categories</option>');
+            categories.forEach(category => {
+                categoryFilter.append(`<option value="${category}">${category}</option>`);
+            });
+        }
+
+        // Update KPIs
+        function updateKPIs() {
+            const stats = {
+                total: AppState.inventory.length,
+                active: AppState.inventory.filter(i => i.status === 'In Use').length,
+                discontinued: AppState.inventory.filter(i => i.status === 'Discontinued').length,
+                vendors: new Set(AppState.inventory.map(i => i.vendor)).size
+            };
+            
+            $('#kpi-total').text(stats.total.toLocaleString());
+            $('#kpi-active').text(stats.active.toLocaleString());
+            $('#kpi-discontinued').text(stats.discontinued.toLocaleString());
+            $('#kpi-vendors').text(stats.vendors.toLocaleString());
+        }
+
+        // Setup Event Listeners
+        function setupEventListeners() {
+            // Search with debounce
+            let searchTimeout;
+            $('#searchInput').on('input', function() {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    AppState.activeFilters.search = $(this).val().toLowerCase().trim();
+                    AppState.hasUserInteracted = true;
+                    applyFilters();
+                }, CONFIG.DEBOUNCE_DELAY);
+            });
+            
+            // Filter change listeners
+            $('#vendorFilter').on('change', function() {
+                AppState.activeFilters.vendor = $(this).val();
+                AppState.hasUserInteracted = true;
+                updateCategoryFilterByVendor(AppState.activeFilters.vendor);
+                applyFilters();
+            });
+            
+            $('#categoryFilter').on('change', function() {
+                AppState.activeFilters.category = $(this).val();
+                AppState.hasUserInteracted = true;
+                updateVendorFilterByCategory(AppState.activeFilters.category);
+                applyFilters();
+            });
+            
+            $('#statusFilter').on('change', function() {
+                AppState.activeFilters.status = $(this).val();
+                AppState.hasUserInteracted = true;
+                applyFilters();
+            });
+        }
+
+        // Two-way dependent filters
+        function updateCategoryFilterByVendor(vendor) {
+            const catFilter = $('#categoryFilter');
+            const currentValue = catFilter.val();
+            
+            let categories;
+            if (vendor) {
+                categories = [...new Set(AppState.inventory
+                    .filter(item => item.vendor === vendor && item.category)
+                    .map(item => item.category))].sort();
+            } else {
+                categories = [...new Set(AppState.inventory
+                    .filter(item => item.category)
+                    .map(item => item.category))].sort();
+            }
+            
+            catFilter.empty();
+            catFilter.append('<option value="">All Categories</option>');
+            categories.forEach(category => {
+                catFilter.append(`<option value="${category}">${category}</option>`);
+            });
+            
+            if (categories.includes(currentValue)) {
+                catFilter.val(currentValue);
+                AppState.activeFilters.category = currentValue;
+            } else if (currentValue) {
+                catFilter.val('');
+                AppState.activeFilters.category = '';
+            }
+        }
+
+        function updateVendorFilterByCategory(category) {
+            const vendorFilter = $('#vendorFilter');
+            const currentValue = vendorFilter.val();
+            
+            let vendors;
+            if (category) {
+                vendors = [...new Set(AppState.inventory
+                    .filter(item => item.category === category && item.vendor)
+                    .map(item => item.vendor))].sort();
+            } else {
+                vendors = [...new Set(AppState.inventory
+                    .filter(item => item.vendor)
+                    .map(item => item.vendor))].sort();
+            }
+            
+            vendorFilter.empty();
+            vendorFilter.append('<option value="">All Vendors</option>');
+            vendors.forEach(vendor => {
+                vendorFilter.append(`<option value="${vendor}">${vendor}</option>`);
+            });
+            
+            if (vendors.includes(currentValue)) {
+                vendorFilter.val(currentValue);
+                AppState.activeFilters.vendor = currentValue;
+            } else if (currentValue) {
+                vendorFilter.val('');
+                AppState.activeFilters.vendor = '';
+            }
+        }
+
+        // Apply Filters
+        function applyFilters() {
+            AppState.filteredItems = AppState.inventory.filter(item => {
+                // Search filter
+                if (AppState.activeFilters.search && !fuzzySearch(item, AppState.activeFilters.search)) {
+                    return false;
+                }
+                
+                // Vendor filter
+                if (AppState.activeFilters.vendor && item.vendor !== AppState.activeFilters.vendor) {
+                    return false;
+                }
+                
+                // Category filter
+                if (AppState.activeFilters.category && item.category !== AppState.activeFilters.category) {
+                    return false;
+                }
+                
+                // Status filter
+                if (AppState.activeFilters.status && item.status !== AppState.activeFilters.status) {
+                    return false;
+                }
+                
+                return true;
+            });
+            
+            renderResults();
+            updateSearchBadge();
+            updateCounts();
+            updateCharts();
+            updateResultsVisibility();
+        }
+
+        // Fuzzy Search
+        function fuzzySearch(item, searchTerm) {
+            if (!searchTerm) return true;
+            
+            const normalizedSearch = searchTerm.toLowerCase().replace(/\s+/g, ' ').trim();
+            const searchWords = normalizedSearch.split(/\s+/);
+            const allText = item.searchableText;
+            
+            return searchWords.every(word => {
+                if (word.length < 2) return true;
+                return allText.includes(word);
+            });
+        }
+
+        // Clear Filters
+        function clearFilters() {
+            $('#searchInput').val('');
+            $('#vendorFilter').val('');
+            $('#categoryFilter').val('');
+            $('#statusFilter').val('');
+            
+            AppState.activeFilters = { search: '', vendor: '', category: '', status: '' };
+            AppState.hasUserInteracted = false;
+            
+            // Reset both dropdowns to show all options
+            updateVendorFilterByCategory('');
+            updateCategoryFilterByVendor('');
+            
+            applyFilters();
+            showToast('Filters cleared');
+        }
+
+        // Update Search Badge
+        function updateSearchBadge() {
+            const count = AppState.filteredItems.length;
+            const badge = $('#search-badge');
+            const resultCount = $('#result-count');
+            
+            if (count > 0 && AppState.activeFilters.search) {
+                resultCount.text(count.toLocaleString());
+                badge.removeClass('hidden');
+            } else {
+                badge.addClass('hidden');
+            }
+        }
+
+        // Update Counts
+        function updateCounts() {
+            $('#total-count').text(AppState.inventory.length.toLocaleString());
+            $('#visible-count').text(AppState.filteredItems.length.toLocaleString());
+        }
+
+        // Update Results Visibility
+        function updateResultsVisibility() {
+            const resultsSection = $('#results-section');
+            const emptyState = $('#empty-state');
+            const resultsGrid = $('#results-grid');
+            
+            // Show results section only when user has interacted
+            if (AppState.hasUserInteracted) {
+                resultsSection.removeClass('hidden');
+                
+                if (AppState.filteredItems.length === 0) {
+                    emptyState.removeClass('hidden');
+                    resultsGrid.addClass('hidden');
+                } else {
+                    emptyState.addClass('hidden');
+                    resultsGrid.removeClass('hidden');
+                }
+            } else {
+                // Hide everything when no interaction
+                resultsSection.addClass('hidden');
+                emptyState.addClass('hidden');
+                resultsGrid.addClass('hidden');
+            }
+        }
+
+        // Render Results
+        function renderResults() {
+            const container = $('#results-grid');
+            container.empty();
+            
+            if (AppState.filteredItems.length === 0) {
+                return;
+            }
+            
+            // Limit display for performance
+            const itemsToShow = AppState.filteredItems.slice(0, CONFIG.ITEMS_PER_PAGE);
+            
+            itemsToShow.forEach(item => {
+                const card = createItemCard(item);
+                container.append(card);
+            });
+        }
+
+        // Create Item Card
+        function createItemCard(item) {
+            const statusClass = item.status === 'In Use' ? 'status-active' : 'status-discontinued';
+            const searchTerm = AppState.activeFilters.search;
+            const highlightedName = highlightText(item.name, searchTerm);
+            
+            // Ensure proper escaping for onclick handler
+            const itemId = String(item.id).replace(/'/g, "\\'");
+            
+            return `
+                <div class="item-card" onclick="openModal('${itemId}')">
+                    <div class="flex justify-between items-start mb-4">
+                        <span class="status-badge ${statusClass}">${item.status}</span>
+                        <span class="text-xs font-mono font-bold text-primary bg-primary/10 px-3 py-1.5 rounded-full">${item.code}</span>
+                    </div>
+                    
+                    <h3 class="font-bold text-gray-800 text-lg leading-tight mb-4 line-clamp-2">${highlightedName}</h3>
+                    
+                    <div class="space-y-4 border-t border-gray-100 pt-4">
+                        <div>
+                            <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Category</p>
+                            <p class="text-sm font-medium text-gray-700">${item.category}</p>
+                        </div>
+                        <div>
+                            <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Vendor</p>
+                            <p class="text-sm font-medium text-gray-700">${item.vendor}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6 pt-4 border-t border-gray-100 flex justify-between items-center">
+                        <span class="text-xs font-mono text-gray-400">#${item.id}</span>
+                        <span class="text-sm font-semibold text-primary flex items-center gap-2">
+                            View Details
+                            <i class="fas fa-arrow-right text-xs"></i>
+                        </span>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Highlight Search Text
+        function highlightText(text, searchTerm) {
+            if (!searchTerm || !text) return text;
+            
+            const searchWords = searchTerm.toLowerCase().split(/\s+/);
+            let highlightedText = text;
+            
+            searchWords.forEach(word => {
+                if (word.length > 2) {
+                    const regex = new RegExp(`(${word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+                    highlightedText = highlightedText.replace(regex, '<mark class="bg-yellow-200 px-1 rounded">$1</mark>');
+                }
+            });
+            
+            return highlightedText;
+        }
+
+        // Initialize Charts
+        function initializeCharts() {
+            // Destroy existing charts
+            if (window.chartInstances) {
+                window.chartInstances.forEach(chart => chart.destroy());
+            }
+            
+            window.chartInstances = [];
+            
+            // Status Chart
+            const statusCtx = document.getElementById('statusChart');
+            if (statusCtx) {
+                const statusData = getStatusDistribution();
+                window.chartInstances.push(new Chart(statusCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: statusData.labels,
+                        datasets: [{
+                            data: statusData.values,
+                            backgroundColor: ['#4cc9f0', '#ef476f'],
+                            borderWidth: 0,
+                            borderRadius: 8,
+                            hoverOffset: 20
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '70%',
+                        plugins: {
+                            legend: {
+                                position: 'right',
+                                labels: {
+                                    padding: 20,
+                                    usePointStyle: true,
+                                    pointStyle: 'circle',
+                                    font: { family: 'Inter', size: 12 }
+                                }
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                titleFont: { family: 'Inter' },
+                                bodyFont: { family: 'Inter' }
+                            }
+                        }
+                    }
+                }));
+            }
+            
+            // Category Chart
+            const categoryCtx = document.getElementById('categoryChart');
+            if (categoryCtx) {
+                const categoryData = getTopCategories(8);
+                window.chartInstances.push(new Chart(categoryCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: categoryData.labels,
+                        datasets: [{
+                            label: 'Items',
+                            data: categoryData.values,
+                            backgroundColor: 'rgba(67, 97, 238, 0.8)',
+                            borderRadius: 6,
+                            borderSkipped: false
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: { display: false },
+                                ticks: { font: { family: 'Inter' } }
+                            },
+                            x: {
+                                grid: { display: false },
+                                ticks: { font: { family: 'Inter', size: 11 } }
+                            }
+                        },
+                        onClick: (evt, elements) => {
+                            if (elements.length > 0) {
+                                AppState.hasUserInteracted = true;
+                                const index = elements[0].index;
+                                const clickedCategory = categoryData.fullLabels[index];
+                                $('#categoryFilter').val(clickedCategory);
+                                AppState.activeFilters.category = clickedCategory;
+                                updateVendorFilterByCategory(clickedCategory);
+                                applyFilters();
+                                showToast(`Filtered by: ${clickedCategory}`);
+                            }
+                        }
+                    }
+                }));
+            }
+        }
+
+        // Update Charts
+        function updateCharts() {
+            const dataToUse = AppState.filteredItems.length > 0 ? AppState.filteredItems : AppState.inventory;
+            
+            if (window.chartInstances && window.chartInstances[0]) {
+                const statusData = getStatusDistribution(dataToUse);
+                window.chartInstances[0].data.labels = statusData.labels;
+                window.chartInstances[0].data.datasets[0].data = statusData.values;
+                window.chartInstances[0].update();
+            }
+            
+            if (window.chartInstances && window.chartInstances[1]) {
+                const categoryData = getTopCategories(8, dataToUse);
+                window.chartInstances[1].data.labels = categoryData.labels;
+                window.chartInstances[1].data.datasets[0].data = categoryData.values;
+                window.chartInstances[1].update();
+            }
+        }
+
+        // Get Status Distribution
+        function getStatusDistribution(data = AppState.inventory) {
+            const statusCounts = {
+                'In Use': 0,
+                'Discontinued': 0
+            };
+            
+            data.forEach(item => {
+                const status = item.status || 'Unknown';
+                if (status === 'In Use' || status === 'Discontinued') {
+                    statusCounts[status] = (statusCounts[status] || 0) + 1;
+                }
+            });
+            
+            return {
+                labels: Object.keys(statusCounts).filter(k => statusCounts[k] > 0),
+                values: Object.values(statusCounts).filter(v => v > 0)
+            };
+        }
+
+        // Get Top Categories
+        function getTopCategories(limit = 8, data = AppState.inventory) {
+            const categoryCounts = {};
+            data.forEach(item => {
+                const category = item.category || 'Unknown';
+                categoryCounts[category] = (categoryCounts[category] || 0) + 1;
+            });
+            
+            const sorted = Object.entries(categoryCounts)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, limit);
+            
+            return {
+                labels: sorted.map(([cat]) => cat.length > 20 ? cat.substring(0, 20) + '...' : cat),
+                values: sorted.map(([, count]) => count),
+                fullLabels: sorted.map(([cat]) => cat)
+            };
+        }
+
+        // Open Modal
+        function openModal(itemId) {
+            const item = AppState.inventory.find(i => String(i.id) === String(itemId));
+            if (!item) {
+                console.error('Item not found with ID:', itemId);
+                return;
+            }
+            
+            AppState.currentModalItem = item;
+            
+            // Populate modal data
+            $('#mTitle').text(item.name);
+            $('#mVendor').html(`<i class="fas fa-building"></i> ${item.vendor}`);
+            $('#mId').text(`#${item.id}`);
+            $('#mCode').text(item.code);
+            $('#mCategory').text(item.category);
+            $('#mRemarks').text(item.remarks || 'No remarks provided.');
+            $('#mTimestamp').html(`<i class="far fa-clock"></i> ${item.timestamp}`);
+            
+            // Update status badge
+            const statusBadge = $('#mStatus');
+            statusBadge.text(item.status);
+            statusBadge.removeClass().addClass(`status-badge ${item.status === 'In Use' ? 'status-active' : 'status-discontinued'}`);
+            
+            // Populate quick details
+            populateQuickDetails(item);
+            
+            // Populate raw data table
+            populateRawDataTable(item);
+            
+            // Show modal
+            $('#detailModal').removeClass('hidden').addClass('flex');
+            
+            // Add escape key listener
+            $(document).on('keydown.modal', (e) => {
+                if (e.key === 'Escape') closeModal();
+            });
+        }
+
+        // Close Modal
+        function closeModal() {
+            $('#detailModal').removeClass('flex').addClass('hidden');
+            AppState.currentModalItem = null;
+            $(document).off('keydown.modal');
+        }
+
+        // Populate Quick Details
+        function populateQuickDetails(item) {
+            const container = $('#mQuickDetails');
+            container.empty();
+            
+            const quickFields = [
+                { label: 'Product Code', value: item.rawData['Product_Code'] },
+                { label: 'Old Item Code', value: item.rawData['Old_Item_Code'] },
+                { label: 'Product Detail', value: item.rawData['RM PM Product List 2::Product_Detail'] },
+                { label: 'Item Detail', value: item.rawData['Item_Detail_by_Vendor'] }
+            ];
+            
+            quickFields.forEach(field => {
+                if (field.value) {
+                    container.append(`
+                        <div class="bg-white border border-gray-200 p-3 rounded-lg">
+                            <p class="text-xs font-semibold text-gray-500 mb-1">${field.label}</p>
+                            <p class="text-sm text-gray-800 break-words">${field.value}</p>
+                        </div>
+                    `);
+                }
+            });
+        }
+
+        // Populate Raw Data Table
+        function populateRawDataTable(item) {
+            const container = $('#mRawTable');
+            container.empty();
+            
+            Object.entries(item.rawData).forEach(([key, value]) => {
+                const formattedKey = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                container.append(`
+                    <tr>
+                        <td class="py-3 px-4 font-semibold text-gray-600 bg-gray-50 border-r border-gray-200">${formattedKey}</td>
+                        <td class="py-3 px-4 text-gray-700">${value || '-'}</td>
+                    </tr>
+                `);
+            });
+        }
+
+        // Copy Item Details with WhatsApp-style formatting
+        function copyItemDetails() {
+            if (!AppState.currentModalItem) return;
+            
+            const item = AppState.currentModalItem;
+            
+            let whatsappMessage = `📦 *INVENTORY ITEM DETAILS*\n`;
+            whatsappMessage += `━━━━━━━━━━━━━━━━━━━━\n\n`;
+            
+            whatsappMessage += `🔹 *Item ID:* ${item.id}\n`;
+            whatsappMessage += `🔹 *Status:* ${item.status}\n`;
+            whatsappMessage += `🔹 *Category:* ${item.category}\n`;
+            whatsappMessage += `🔹 *Item Code:* ${item.code}\n`;
+            whatsappMessage += `🔹 *Item Name:* ${item.name}\n`;
+            whatsappMessage += `🔹 *Vendor:* ${item.vendor}\n\n`;
+            
+            if (item.rawData['Old_Item_Code']) {
+                whatsappMessage += `📋 *Previous Code:* ${item.rawData['Old_Item_Code']}\n`;
+            }
+            
+            if (item.rawData['Product_Code']) {
+                whatsappMessage += `📋 *Product Code:* ${item.rawData['Product_Code']}\n`;
+            }
+            
+            if (item.rawData['RM PM Product List 2::Product_Detail']) {
+                whatsappMessage += `📋 *Product Detail:* ${item.rawData['RM PM Product List 2::Product_Detail']}\n`;
+            }
+            
+            if (item.rawData['Item_Detail_by_Vendor']) {
+                whatsappMessage += `📋 *Vendor Detail:* ${item.rawData['Item_Detail_by_Vendor']}\n`;
+            }
+            
+            if (item.remarks && item.remarks.trim() !== '') {
+                whatsappMessage += `\n📝 *Remarks:*\n${item.remarks}\n`;
+            }
+            
+            whatsappMessage += `\n━━━━━━━━━━━━━━━━━━━━\n`;
+            whatsappMessage += `🔗 _Shared via StockFlow Dashboard_`;
+            
+            navigator.clipboard.writeText(whatsappMessage).then(() => {
+                showToast('Details copied for WhatsApp!', 'success');
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+                showToast('Failed to copy details', 'error');
+            });
+        }
+
+        // Refresh Data
+        function refreshData() {
+            $('#loader').fadeIn();
+            loadData(CONFIG.FILENAME);
+        }
+
+        // Scroll to Top
+        function scrollToTop() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Show Toast
+        function showToast(message, type = 'success') {
+            const toast = $('#toast');
+            const toastMessage = $('#toast-message');
+            
+            toastMessage.text(message);
+            
+            switch(type) {
+                case 'success':
+                    toast.css('background', 'linear-gradient(135deg, #10b981 0%, #0ea5e9 100%)');
+                    break;
+                case 'error':
+                    toast.css('background', 'linear-gradient(135deg, #ef476f 0%, #f72585 100%)');
+                    break;
+                case 'warning':
+                    toast.css('background', 'linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%)');
+                    break;
+            }
+            
+            toast.removeClass('hidden').addClass('toast-enter');
+            
+            setTimeout(() => {
+                toast.removeClass('toast-enter').addClass('toast-exit');
+                setTimeout(() => {
+                    toast.addClass('hidden').removeClass('toast-exit');
+                }, 300);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
