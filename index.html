@@ -80,3 +80,220 @@
     </script>
 </body>
 </html>
+
+<!-- ========================================== -->
+<!-- NEW SYSTEM INTEGRATION (BELOW XYZ)         -->
+<!-- ========================================== -->
+
+<!-- Is container mein humara naya UI rahega -->
+<div id="sample-cart-module" style="padding: 20px; background: #fff; position: relative; z-index: 1000; height: 100vh; overflow-y: auto;">
+    <h2 style="border-bottom: 2px solid #ddd; padding-bottom: 10px;">📦 Send Samples to Customer</h2>
+
+    <!-- Search Section -->
+    <div style="position: relative; margin-bottom: 20px;">
+        <input type="text" id="oop-search-input" placeholder="Search Product Name..." style="width: 100%; padding: 12px; font-size: 16px; border: 1px solid #ccc; border-radius: 5px;">
+        <div id="oop-suggestions" style="position: absolute; width: 100%; background: #fff; border: 1px solid #ddd; max-height: 200px; overflow-y: auto; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: none;"></div>
+    </div>
+
+    <!-- Cart Section (Temporary list before finalise) -->
+    <div id="oop-cart-section" style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+        <h3>🛒 Current Cart</h3>
+        <ul id="oop-cart-list" style="list-style-type: none; padding-left: 0;"></ul>
+        <button id="oop-finalise-btn" style="background: #4361ee; color: white; border: none; padding: 10px 20px; font-size: 16px; border-radius: 5px; cursor: pointer; display: none; width: 100%; margin-top: 10px;">
+            Finalise & Enter Customer Name
+        </button>
+    </div>
+
+    <!-- Saved Database Section (Persistent & Exportable) -->
+    <h3>📂 Saved Dispatched Samples</h3>
+    
+    <div style="margin-bottom: 15px;">
+        <button id="oop-export-btn" style="background: #28a745; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-size: 14px; font-weight: bold; margin-right: 10px;">
+            📥 Download as Excel (CSV)
+        </button>
+        <button onclick="sampleApp.clearHistory()" style="background: #dc3545; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-size: 14px;">
+            🗑️ Clear History
+        </button>
+    </div>
+
+    <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; text-align: left;">
+            <thead>
+                <tr style="background: #333; color: white;">
+                    <th style="padding: 10px; border: 1px solid #ddd;">Date</th>
+                    <th style="padding: 10px; border: 1px solid #ddd;">Customer</th>
+                    <th style="padding: 10px; border: 1px solid #ddd;">Items (Qty)</th>
+                </tr>
+            </thead>
+            <tbody id="oop-saved-table-body">
+                <!-- Saved data yahan inject hoga -->
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- OOP JAVASCRIPT LOGIC -->
+<script>
+    class SampleCartApp {
+        constructor(productDatabase) {
+            this.database = productDatabase; 
+            this.cart = []; 
+            this.savedOrders = JSON.parse(localStorage.getItem('sample_orders_db')) || [];
+
+            this.searchInput = document.getElementById('oop-search-input');
+            this.suggestionsBox = document.getElementById('oop-suggestions');
+            this.cartList = document.getElementById('oop-cart-list');
+            this.finaliseBtn = document.getElementById('oop-finalise-btn');
+            this.savedTableBody = document.getElementById('oop-saved-table-body');
+            this.exportBtn = document.getElementById('oop-export-btn');
+
+            this.initEvents();
+            this.renderSavedOrders();
+        }
+
+        initEvents() {
+            this.searchInput.addEventListener('input', (e) => this.handleSearch(e.target.value));
+            this.finaliseBtn.addEventListener('click', () => this.finaliseOrder());
+            this.exportBtn.addEventListener('click', () => this.exportToCSV());
+        }
+
+        handleSearch(query) {
+            query = query.toLowerCase().trim();
+            this.suggestionsBox.innerHTML = '';
+            
+            if (!query) {
+                this.suggestionsBox.style.display = 'none';
+                return;
+            }
+
+            const matches = this.database.filter(p => p.toLowerCase().includes(query));
+
+            if (matches.length > 0) {
+                this.suggestionsBox.style.display = 'block';
+                matches.forEach(match => {
+                    let div = document.createElement('div');
+                    div.style.cssText = "padding: 12px; border-bottom: 1px solid #eee; cursor: pointer;";
+                    div.innerText = match;
+                    div.onmouseover = () => div.style.backgroundColor = '#f1f1f1';
+                    div.onmouseout = () => div.style.backgroundColor = 'transparent';
+                    
+                    div.addEventListener('click', () => this.promptQuantity(match));
+                    this.suggestionsBox.appendChild(div);
+                });
+            } else {
+                this.suggestionsBox.style.display = 'none';
+            }
+        }
+
+        promptQuantity(productName) {
+            let qty = prompt(`Enter quantity for "${productName}" (e.g., 2pc, 3pc):`);
+            if (qty && qty.trim() !== "") {
+                this.cart.push({ name: productName, quantity: qty.trim() });
+                this.updateCartUI();
+            }
+            this.searchInput.value = '';
+            this.suggestionsBox.style.display = 'none';
+        }
+
+        updateCartUI() {
+            this.cartList.innerHTML = '';
+            this.cart.forEach(item => {
+                let li = document.createElement('li');
+                li.style.cssText = "padding: 8px 0; border-bottom: 1px dashed #ccc; display: flex; justify-content: space-between;";
+                li.innerHTML = `<span><b>${item.name}</b></span> <span>${item.quantity}</span>`;
+                this.cartList.appendChild(li);
+            });
+            this.finaliseBtn.style.display = this.cart.length > 0 ? 'block' : 'none';
+        }
+
+        finaliseOrder() {
+            if (this.cart.length === 0) return;
+            let customerName = prompt("Enter Customer Name to finalise these samples:");
+            
+            if (customerName && customerName.trim() !== "") {
+                const newOrder = {
+                    id: Date.now(),
+                    // Date aur Time dono capture ho rahe hain
+                    dateTime: new Date().toLocaleString('en-GB'),
+                    customer: customerName.trim(),
+                    items: [...this.cart] 
+                };
+
+                this.savedOrders.push(newOrder);
+                localStorage.setItem('sample_orders_db', JSON.stringify(this.savedOrders));
+
+                this.cart = [];
+                this.updateCartUI();
+                this.renderSavedOrders();
+                
+                alert(`Successfully saved samples for ${customerName}!`);
+            }
+        }
+
+        renderSavedOrders() {
+            this.savedTableBody.innerHTML = '';
+            let displayOrders = [...this.savedOrders].reverse();
+
+            displayOrders.forEach(order => {
+                let itemsString = order.items.map(i => `${i.name} (${i.quantity})`).join(', ');
+                let tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="padding: 10px; border: 1px solid #ddd; font-size: 13px;">${order.dateTime || order.date}</td>
+                    <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">${order.customer}</td>
+                    <td style="padding: 10px; border: 1px solid #ddd; font-size: 14px; color: #555;">${itemsString}</td>
+                `;
+                this.savedTableBody.appendChild(tr);
+            });
+        }
+
+        exportToCSV() {
+            if (this.savedOrders.length === 0) {
+                alert("No data available to download.");
+                return;
+            }
+
+            // CSV Header updated for Time
+            let csvContent = "Date & Time,Customer Name,Product Name,Quantity\n";
+
+            this.savedOrders.forEach(order => {
+                order.items.forEach(item => {
+                    let cleanDateTime = `"${order.dateTime || order.date}"`;
+                    let cleanCustomer = `"${order.customer.replace(/"/g, '""')}"`;
+                    let cleanProduct = `"${item.name.replace(/"/g, '""')}"`;
+                    let cleanQty = `"${item.quantity.replace(/"/g, '""')}"`;
+                    
+                    csvContent += `${cleanDateTime},${cleanCustomer},${cleanProduct},${cleanQty}\n`;
+                });
+            });
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            
+            link.setAttribute("href", url);
+            link.setAttribute("download", `Sample_Exports_${new Date().toLocaleDateString('en-GB').replace(/\//g, '-')}.csv`);
+            link.style.visibility = 'hidden';
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        clearHistory() {
+            if (confirm("Are you sure you want to delete all saved sample history? Remember to export first!")) {
+                this.savedOrders = [];
+                localStorage.removeItem('sample_orders_db');
+                this.renderSavedOrders();
+            }
+        }
+    }
+
+    // Replace this with your actual Excel imported array
+    const myProductList = [
+        "Cotton Shirt Fabric", "Silk Thread 500m", "Denim Roll Dark Blue", 
+        "Linen Cloth 10m", "Poly-blend Mix", "Buttons Packet (Large)"
+    ];
+
+    const sampleApp = new SampleCartApp(myProductList);
+
+</script>
