@@ -238,9 +238,14 @@
                     return;
                 }
 
+                // Split the query into individual words just like rm.html and fg.html do
+                const searchTerms = query.split(/\s+/).filter(term => term.length > 0);
                 const liveDatabase = this.getDatabaseBySource();
-                // Match search string exactly how original apps do
-                const matches = liveDatabase.filter(p => p.searchStr.includes(query));
+                
+                // Match items where EVERY typed word is found in the search string, regardless of order
+                const matches = liveDatabase.filter(p => {
+                    return searchTerms.every(term => p.searchStr.includes(term));
+                });
 
                 if (matches.length > 0) {
                     this.suggestionsBox.style.display = 'block';
@@ -248,7 +253,6 @@
                         let div = document.createElement('div');
                         div.style.cssText = "padding: 12px; border-bottom: 1px solid #eee; cursor: pointer; color: #333; display: flex; justify-content: space-between; align-items: center;";
                         
-                        // Show Name and Code distinctly
                         div.innerHTML = `
                             <strong style="flex: 1; margin-right: 10px;">${match.name}</strong> 
                             <span style="font-size: 11px; background: #e9ecef; padding: 4px 8px; border-radius: 4px; font-family: monospace; white-space: nowrap;">${match.code}</span>
