@@ -35,6 +35,10 @@
         #floating-sample-btn { position: fixed; top: 15px; right: 15px; z-index: 9990; background: #00E676; color: #000; border: none; border-radius: 8px; padding: 10px 15px; font-weight: bold; font-size: 13px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); cursor: pointer; }
         #sample-cart-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #fff; z-index: 9999; overflow-y: auto; }
         .close-modal-btn { background: #333; color: white; border: none; padding: 15px; width: 100%; font-size: 16px; font-weight: bold; cursor: pointer; position: sticky; top: 0; z-index: 10000; }
+        
+        /* Toggle Buttons */
+        .source-toggle { flex: 1; padding: 12px; border: 1px solid #ccc; background: #f8f9fa; cursor: pointer; border-radius: 6px; font-weight: 600; color: #555; transition: all 0.3s ease; }
+        .source-toggle.active { background: #4361ee; color: white; border-color: #4361ee; box-shadow: 0 2px 10px rgba(67, 97, 238, 0.3); }
     </style>
 </head>
 <body>
@@ -43,7 +47,6 @@
     <!-- ORIGINAL XYZ HTML (UNTOUCHED)              -->
     <!-- ========================================== -->
     <iframe id="frame-a" class="app-frame" src="rm.html"></iframe>
-    
     <iframe id="frame-b" class="app-frame" src="fg.html"></iframe>
 
     <nav id="bottom-nav" class="theme-light">
@@ -72,23 +75,32 @@
         <div style="padding: 20px;">
             <h2 style="margin-top:0; color: #333;">📦 Dispatch Samples</h2>
 
-            <div style="position: relative; margin-bottom: 20px;">
-                <input type="text" id="oop-search-input" placeholder="Search Product Name..." style="width: 100%; padding: 12px; font-size: 16px; border: 1px solid #ccc; box-sizing: border-box; border-radius: 4px;">
-                <div id="oop-suggestions" style="position: absolute; width: 100%; background: #fff; border: 1px solid #ddd; max-height: 200px; overflow-y: auto; display: none; z-index: 99;"></div>
+            <!-- Database Toggle -->
+            <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                <button id="toggle-rm" class="source-toggle active">Raw Materials</button>
+                <button id="toggle-fg" class="source-toggle">FG Vault</button>
             </div>
 
+            <!-- Search Area -->
+            <div style="position: relative; margin-bottom: 20px;">
+                <input type="text" id="oop-search-input" placeholder="Search by Name or Item Code..." style="width: 100%; padding: 12px; font-size: 16px; border: 1px solid #ccc; box-sizing: border-box; border-radius: 4px;">
+                <div id="oop-suggestions" style="position: absolute; width: 100%; background: #fff; border: 1px solid #ddd; max-height: 250px; overflow-y: auto; display: none; z-index: 99; box-shadow: 0 4px 15px rgba(0,0,0,0.1);"></div>
+            </div>
+
+            <!-- Cart Area -->
             <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #eee;">
                 <h3 style="margin-top:0; color: #333;">🛒 Current Cart</h3>
                 <ul id="oop-cart-list" style="list-style-type: none; padding: 0; margin: 0; color: #333;"></ul>
-                <button id="oop-finalise-btn" style="background: #4361ee; color: white; border: none; padding: 12px; font-size: 16px; width: 100%; margin-top: 15px; display: none; cursor: pointer; border-radius: 4px;">
+                <button id="oop-finalise-btn" style="background: #4361ee; color: white; border: none; padding: 12px; font-size: 16px; width: 100%; margin-top: 15px; display: none; cursor: pointer; border-radius: 4px; font-weight: bold;">
                     Finalise & Enter Customer Name
                 </button>
             </div>
 
+            <!-- History Area -->
             <h3 style="color: #333;">📂 Saved Dispatched Samples</h3>
             <div style="margin-bottom: 15px; display: flex; gap: 10px;">
-                <button id="oop-export-btn" style="background: #28a745; color: white; border: none; padding: 10px; border-radius: 4px; cursor: pointer; flex: 1;">📥 Excel CSV</button>
-                <button onclick="sampleApp.clearHistory()" style="background: #dc3545; color: white; border: none; padding: 10px; border-radius: 4px; cursor: pointer; flex: 1;">🗑️ Clear</button>
+                <button id="oop-export-btn" style="background: #28a745; color: white; border: none; padding: 10px; border-radius: 4px; cursor: pointer; flex: 1; font-weight: bold;">📥 Excel CSV</button>
+                <button onclick="sampleApp.clearHistory()" style="background: #dc3545; color: white; border: none; padding: 10px; border-radius: 4px; cursor: pointer; flex: 1; font-weight: bold;">🗑️ Clear</button>
             </div>
 
             <div style="overflow-x: auto;">
@@ -143,6 +155,7 @@
             constructor() {
                 this.cart = []; 
                 this.savedOrders = JSON.parse(localStorage.getItem('sample_orders_db')) || [];
+                this.currentSource = 'RM'; // Default to Raw Materials
 
                 this.searchInput = document.getElementById('oop-search-input');
                 this.suggestionsBox = document.getElementById('oop-suggestions');
@@ -150,6 +163,9 @@
                 this.finaliseBtn = document.getElementById('oop-finalise-btn');
                 this.savedTableBody = document.getElementById('oop-saved-table-body');
                 this.exportBtn = document.getElementById('oop-export-btn');
+                
+                this.btnRM = document.getElementById('toggle-rm');
+                this.btnFG = document.getElementById('toggle-fg');
 
                 this.initEvents();
                 this.renderSavedOrders();
@@ -159,39 +175,58 @@
                 this.searchInput.addEventListener('input', (e) => this.handleSearch(e.target.value));
                 this.finaliseBtn.addEventListener('click', () => this.finaliseOrder());
                 this.exportBtn.addEventListener('click', () => this.exportToCSV());
+                
+                // Toggle Logic
+                this.btnRM.addEventListener('click', () => this.switchSource('RM'));
+                this.btnFG.addEventListener('click', () => this.switchSource('FG'));
             }
 
-            // DYNAMICALLY PULL DATA FROM BOTH IFRAMES (FIXED FOR CONST SCOPING)
-            getMergedDatabase() {
-                let mergedData = [];
+            switchSource(source) {
+                this.currentSource = source;
+                this.searchInput.value = '';
+                this.suggestionsBox.style.display = 'none';
                 
-                // Fetch from rm.html (StockFlow)
-                try {
-                    const frameA = document.getElementById('frame-a').contentWindow;
-                    // Using eval() to forcefully read the hidden 'const' variable inside the iframe
-                    const rmInventory = frameA.eval('AppState.inventory');
-                    if (rmInventory && rmInventory.length > 0) {
-                        const rmNames = rmInventory.map(item => `[RM] ${item.name || 'Unknown'}`);
-                        mergedData = mergedData.concat(rmNames);
-                    }
-                } catch(e) { 
-                    console.warn("RM Data not loaded yet."); 
+                if (source === 'RM') {
+                    this.btnRM.classList.add('active');
+                    this.btnFG.classList.remove('active');
+                } else {
+                    this.btnFG.classList.add('active');
+                    this.btnRM.classList.remove('active');
                 }
+            }
 
-                // Fetch from fg.html (FG Vault)
-                try {
-                    const frameB = document.getElementById('frame-b').contentWindow;
-                    // Using eval() to forcefully read the hidden 'const' variable inside the iframe
-                    const fgInventory = frameB.eval('app.db');
-                    if (fgInventory && fgInventory.length > 0) {
-                        const fgNames = fgInventory.map(item => `[FG] ${item.name || 'Unknown'}`);
-                        mergedData = mergedData.concat(fgNames);
-                    }
-                } catch(e) { 
-                    console.warn("FG Data not loaded yet."); 
+            getDatabaseBySource() {
+                let db = [];
+                
+                if (this.currentSource === 'RM') {
+                    try {
+                        const frameA = document.getElementById('frame-a').contentWindow;
+                        const rmInventory = frameA.eval('AppState.inventory');
+                        if (rmInventory) {
+                            db = rmInventory.map(item => ({
+                                name: item.name || 'Unknown',
+                                code: item.code || 'N/A',
+                                // Uses exact searchable logic from RM code
+                                searchStr: (item.searchableText || item.name + ' ' + item.code).toLowerCase()
+                            }));
+                        }
+                    } catch(e) { console.warn("RM Data not loaded"); }
+                } else {
+                    try {
+                        const frameB = document.getElementById('frame-b').contentWindow;
+                        const fgInventory = frameB.eval('app.db');
+                        if (fgInventory) {
+                            db = fgInventory.map(item => ({
+                                name: item.name || 'Unknown',
+                                code: item.code || 'N/A',
+                                // Uses exact searchable logic from FG code
+                                searchStr: (item.searchIndex || item.name + ' ' + item.code).toLowerCase()
+                            }));
+                        }
+                    } catch(e) { console.warn("FG Data not loaded"); }
                 }
-
-                return mergedData;
+                
+                return db;
             }
 
             handleSearch(query) {
@@ -203,17 +238,23 @@
                     return;
                 }
 
-                // Grab live data right when typing
-                const liveDatabase = this.getMergedDatabase();
-                const matches = liveDatabase.filter(p => p.toLowerCase().includes(query));
+                const liveDatabase = this.getDatabaseBySource();
+                // Match search string exactly how original apps do
+                const matches = liveDatabase.filter(p => p.searchStr.includes(query));
 
                 if (matches.length > 0) {
                     this.suggestionsBox.style.display = 'block';
                     matches.forEach(match => {
                         let div = document.createElement('div');
-                        div.style.cssText = "padding: 12px; border-bottom: 1px solid #eee; cursor: pointer; color: #333;";
-                        div.innerText = match;
-                        div.addEventListener('click', () => this.promptQuantity(match));
+                        div.style.cssText = "padding: 12px; border-bottom: 1px solid #eee; cursor: pointer; color: #333; display: flex; justify-content: space-between; align-items: center;";
+                        
+                        // Show Name and Code distinctly
+                        div.innerHTML = `
+                            <strong style="flex: 1; margin-right: 10px;">${match.name}</strong> 
+                            <span style="font-size: 11px; background: #e9ecef; padding: 4px 8px; border-radius: 4px; font-family: monospace; white-space: nowrap;">${match.code}</span>
+                        `;
+                        
+                        div.addEventListener('click', () => this.promptQuantity(match.name, match.code));
                         this.suggestionsBox.appendChild(div);
                     });
                 } else {
@@ -221,10 +262,11 @@
                 }
             }
 
-            promptQuantity(productName) {
-                let qty = prompt(`Enter quantity for "${productName}" (e.g., 2pc, 3pc):`);
+            promptQuantity(productName, productCode) {
+                let qty = prompt(`Enter quantity for:\n${productName} (${productCode})`);
                 if (qty && qty.trim() !== "") {
-                    this.cart.push({ name: productName, quantity: qty.trim() });
+                    // Save item as Name [Code] in the cart array
+                    this.cart.push({ name: `${productName} [${productCode}]`, quantity: qty.trim() });
                     this.updateCartUI();
                 }
                 this.searchInput.value = '';
@@ -235,8 +277,8 @@
                 this.cartList.innerHTML = '';
                 this.cart.forEach(item => {
                     let li = document.createElement('li');
-                    li.style.cssText = "padding: 8px 0; border-bottom: 1px dashed #ccc; display: flex; justify-content: space-between;";
-                    li.innerHTML = `<span><b>${item.name}</b></span> <span>${item.quantity}</span>`;
+                    li.style.cssText = "padding: 10px 0; border-bottom: 1px dashed #ccc; display: flex; justify-content: space-between; font-size: 14px;";
+                    li.innerHTML = `<span style="flex: 1; padding-right: 10px;"><b>${item.name}</b></span> <span style="font-weight: bold; color: #4361ee; white-space: nowrap;">${item.quantity}</span>`;
                     this.cartList.appendChild(li);
                 });
                 this.finaliseBtn.style.display = this.cart.length > 0 ? 'block' : 'none';
@@ -263,12 +305,12 @@
                 this.savedTableBody.innerHTML = '';
                 let displayOrders = [...this.savedOrders].reverse();
                 displayOrders.forEach(order => {
-                    let itemsString = order.items.map(i => `${i.name} (${i.quantity})`).join(', ');
+                    let itemsString = order.items.map(i => `${i.name} (${i.quantity})`).join('<br>');
                     let tr = document.createElement('tr');
                     tr.innerHTML = `
-                        <td style="padding: 8px; border: 1px solid #ddd; font-size: 12px;">${order.dateTime}</td>
-                        <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">${order.customer}</td>
-                        <td style="padding: 8px; border: 1px solid #ddd; font-size: 13px;">${itemsString}</td>
+                        <td style="padding: 10px 8px; border: 1px solid #ddd; font-size: 12px; vertical-align: top;">${order.dateTime}</td>
+                        <td style="padding: 10px 8px; border: 1px solid #ddd; font-weight: bold; vertical-align: top;">${order.customer}</td>
+                        <td style="padding: 10px 8px; border: 1px solid #ddd; font-size: 12px; vertical-align: top; line-height: 1.5;">${itemsString}</td>
                     `;
                     this.savedTableBody.appendChild(tr);
                 });
