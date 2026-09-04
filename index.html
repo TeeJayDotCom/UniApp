@@ -141,9 +141,6 @@
     <script>
         class SampleCartApp {
             constructor() {
-                // REPLACE THIS ARRAY WITH YOUR EXCEL DATA IMPORT LATER
-                this.database = ["Cotton Shirt Fabric", "Silk Thread 500m", "Denim Roll Dark Blue", "Linen Cloth 10m", "Poly-blend Mix", "Buttons Packet"]; 
-                
                 this.cart = []; 
                 this.savedOrders = JSON.parse(localStorage.getItem('sample_orders_db')) || [];
 
@@ -164,6 +161,31 @@
                 this.exportBtn.addEventListener('click', () => this.exportToCSV());
             }
 
+            // DYNAMICALLY PULL DATA FROM BOTH IFRAMES
+            getMergedDatabase() {
+                let mergedData = [];
+                
+                // Fetch from rm.html (StockFlow)
+                try {
+                    const frameA = document.getElementById('frame-a').contentWindow;
+                    if (frameA && frameA.AppState && frameA.AppState.inventory) {
+                        const rmNames = frameA.AppState.inventory.map(item => `[RM] ${item.name || 'Unknown'}`);
+                        mergedData = mergedData.concat(rmNames);
+                    }
+                } catch(e) { console.warn("RM frame not ready or inaccessible"); }
+
+                // Fetch from fg.html (FG Vault)
+                try {
+                    const frameB = document.getElementById('frame-b').contentWindow;
+                    if (frameB && frameB.app && frameB.app.db) {
+                        const fgNames = frameB.app.db.map(item => `[FG] ${item.name || 'Unknown'}`);
+                        mergedData = mergedData.concat(fgNames);
+                    }
+                } catch(e) { console.warn("FG frame not ready or inaccessible"); }
+
+                return mergedData;
+            }
+
             handleSearch(query) {
                 query = query.toLowerCase().trim();
                 this.suggestionsBox.innerHTML = '';
@@ -173,7 +195,9 @@
                     return;
                 }
 
-                const matches = this.database.filter(p => p.toLowerCase().includes(query));
+                // Grab live data right when typing
+                const liveDatabase = this.getMergedDatabase();
+                const matches = liveDatabase.filter(p => p.toLowerCase().includes(query));
 
                 if (matches.length > 0) {
                     this.suggestionsBox.style.display = 'block';
