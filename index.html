@@ -161,27 +161,35 @@
                 this.exportBtn.addEventListener('click', () => this.exportToCSV());
             }
 
-            // DYNAMICALLY PULL DATA FROM BOTH IFRAMES
+            // DYNAMICALLY PULL DATA FROM BOTH IFRAMES (FIXED FOR CONST SCOPING)
             getMergedDatabase() {
                 let mergedData = [];
                 
                 // Fetch from rm.html (StockFlow)
                 try {
                     const frameA = document.getElementById('frame-a').contentWindow;
-                    if (frameA && frameA.AppState && frameA.AppState.inventory) {
-                        const rmNames = frameA.AppState.inventory.map(item => `[RM] ${item.name || 'Unknown'}`);
+                    // Using eval() to forcefully read the hidden 'const' variable inside the iframe
+                    const rmInventory = frameA.eval('AppState.inventory');
+                    if (rmInventory && rmInventory.length > 0) {
+                        const rmNames = rmInventory.map(item => `[RM] ${item.name || 'Unknown'}`);
                         mergedData = mergedData.concat(rmNames);
                     }
-                } catch(e) { console.warn("RM frame not ready or inaccessible"); }
+                } catch(e) { 
+                    console.warn("RM Data not loaded yet."); 
+                }
 
                 // Fetch from fg.html (FG Vault)
                 try {
                     const frameB = document.getElementById('frame-b').contentWindow;
-                    if (frameB && frameB.app && frameB.app.db) {
-                        const fgNames = frameB.app.db.map(item => `[FG] ${item.name || 'Unknown'}`);
+                    // Using eval() to forcefully read the hidden 'const' variable inside the iframe
+                    const fgInventory = frameB.eval('app.db');
+                    if (fgInventory && fgInventory.length > 0) {
+                        const fgNames = fgInventory.map(item => `[FG] ${item.name || 'Unknown'}`);
                         mergedData = mergedData.concat(fgNames);
                     }
-                } catch(e) { console.warn("FG frame not ready or inaccessible"); }
+                } catch(e) { 
+                    console.warn("FG Data not loaded yet."); 
+                }
 
                 return mergedData;
             }
