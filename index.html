@@ -78,6 +78,199 @@
             }
         }
     </script>
+<!-- ========================================== -->
+<!-- FLOATING SAMPLE CART SYSTEM (100% SAFE)    -->
+<!-- ========================================== -->
+<style>
+    /* Floating Button */
+    #floating-sample-btn { position: fixed; bottom: 90px; right: 20px; z-index: 9000; background: #00E676; color: #000; border: none; border-radius: 50px; padding: 15px 20px; font-weight: bold; font-size: 14px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); cursor: pointer; }
+    /* Full Screen Modal */
+    #sample-cart-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #fff; z-index: 10000; overflow-y: auto; padding-bottom: 30px; font-family: sans-serif; }
+    /* Close Button */
+    .close-modal-btn { background: #333; color: white; border: none; padding: 15px; width: 100%; font-size: 16px; font-weight: bold; cursor: pointer; position: sticky; top: 0; z-index: 10001; text-transform: uppercase; }
+</style>
+
+<!-- Floating Trigger Button -->
+<button id="floating-sample-btn" onclick="document.getElementById('sample-cart-modal').style.display='block'">
+    📦 Send Sample
+</button>
+
+<!-- Hidden Modal Container -->
+<div id="sample-cart-modal">
+    <button class="close-modal-btn" onclick="document.getElementById('sample-cart-modal').style.display='none'">
+        ↓ Close Sample Panel ↓
+    </button>
+    
+    <div style="padding: 20px;">
+        <h2 style="margin-top:0;">📦 Dispatch Samples</h2>
+
+        <!-- Search -->
+        <div style="position: relative; margin-bottom: 20px;">
+            <input type="text" id="oop-search-input" placeholder="Search Product Name..." style="width: 100%; padding: 12px; font-size: 16px; border: 1px solid #ccc; box-sizing: border-box;">
+            <div id="oop-suggestions" style="position: absolute; width: 100%; background: #fff; border: 1px solid #ddd; max-height: 200px; overflow-y: auto; display: none; z-index: 99;"></div>
+        </div>
+
+        <!-- Temporary Cart -->
+        <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #eee;">
+            <h3 style="margin-top:0;">🛒 Current Cart</h3>
+            <ul id="oop-cart-list" style="list-style-type: none; padding: 0; margin: 0;"></ul>
+            <button id="oop-finalise-btn" style="background: #4361ee; color: white; border: none; padding: 12px; font-size: 16px; width: 100%; margin-top: 15px; display: none; cursor: pointer;">
+                Finalise & Enter Customer Name
+            </button>
+        </div>
+
+        <!-- History & Actions -->
+        <h3>📂 Saved Dispatched Samples</h3>
+        <div style="margin-bottom: 15px; display: flex; gap: 10px;">
+            <button id="oop-export-btn" style="background: #28a745; color: white; border: none; padding: 10px; border-radius: 5px; cursor: pointer; flex: 1;">📥 Excel CSV</button>
+            <button onclick="sampleApp.clearHistory()" style="background: #dc3545; color: white; border: none; padding: 10px; border-radius: 5px; cursor: pointer; flex: 1;">🗑️ Clear</button>
+        </div>
+
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 14px;">
+                <thead>
+                    <tr style="background: #eee;">
+                        <th style="padding: 8px; border: 1px solid #ccc;">Time</th>
+                        <th style="padding: 8px; border: 1px solid #ccc;">Customer</th>
+                        <th style="padding: 8px; border: 1px solid #ccc;">Items</th>
+                    </tr>
+                </thead>
+                <tbody id="oop-saved-table-body"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    class SampleCartApp {
+        constructor() {
+            // Excel data will go here later
+            this.database = ["Cotton Shirt Fabric", "Silk Thread 500m", "Denim Roll Dark Blue", "Linen Cloth 10m"]; 
+            this.cart = []; 
+            this.savedOrders = JSON.parse(localStorage.getItem('sample_orders_db')) || [];
+
+            this.searchInput = document.getElementById('oop-search-input');
+            this.suggestionsBox = document.getElementById('oop-suggestions');
+            this.cartList = document.getElementById('oop-cart-list');
+            this.finaliseBtn = document.getElementById('oop-finalise-btn');
+            this.savedTableBody = document.getElementById('oop-saved-table-body');
+            this.exportBtn = document.getElementById('oop-export-btn');
+
+            this.initEvents();
+            this.renderSavedOrders();
+        }
+
+        initEvents() {
+            this.searchInput.addEventListener('input', (e) => this.handleSearch(e.target.value));
+            this.finaliseBtn.addEventListener('click', () => this.finaliseOrder());
+            this.exportBtn.addEventListener('click', () => this.exportToCSV());
+        }
+
+        handleSearch(query) {
+            query = query.toLowerCase().trim();
+            this.suggestionsBox.innerHTML = '';
+            
+            if (!query) {
+                this.suggestionsBox.style.display = 'none';
+                return;
+            }
+
+            const matches = this.database.filter(p => p.toLowerCase().includes(query));
+
+            if (matches.length > 0) {
+                this.suggestionsBox.style.display = 'block';
+                matches.forEach(match => {
+                    let div = document.createElement('div');
+                    div.style.cssText = "padding: 12px; border-bottom: 1px solid #eee; cursor: pointer;";
+                    div.innerText = match;
+                    div.addEventListener('click', () => this.promptQuantity(match));
+                    this.suggestionsBox.appendChild(div);
+                });
+            } else {
+                this.suggestionsBox.style.display = 'none';
+            }
+        }
+
+        promptQuantity(productName) {
+            let qty = prompt(`Enter quantity for "${productName}":`);
+            if (qty && qty.trim() !== "") {
+                this.cart.push({ name: productName, quantity: qty.trim() });
+                this.updateCartUI();
+            }
+            this.searchInput.value = '';
+            this.suggestionsBox.style.display = 'none';
+        }
+
+        updateCartUI() {
+            this.cartList.innerHTML = '';
+            this.cart.forEach(item => {
+                let li = document.createElement('li');
+                li.style.cssText = "padding: 8px 0; border-bottom: 1px dashed #ccc; display: flex; justify-content: space-between;";
+                li.innerHTML = `<span><b>${item.name}</b></span> <span>${item.quantity}</span>`;
+                this.cartList.appendChild(li);
+            });
+            this.finaliseBtn.style.display = this.cart.length > 0 ? 'block' : 'none';
+        }
+
+        finaliseOrder() {
+            let customerName = prompt("Enter Customer Name:");
+            if (customerName && customerName.trim() !== "") {
+                const newOrder = {
+                    id: Date.now(),
+                    dateTime: new Date().toLocaleString('en-GB'),
+                    customer: customerName.trim(),
+                    items: [...this.cart] 
+                };
+                this.savedOrders.push(newOrder);
+                localStorage.setItem('sample_orders_db', JSON.stringify(this.savedOrders));
+                this.cart = [];
+                this.updateCartUI();
+                this.renderSavedOrders();
+            }
+        }
+
+        renderSavedOrders() {
+            this.savedTableBody.innerHTML = '';
+            let displayOrders = [...this.savedOrders].reverse();
+            displayOrders.forEach(order => {
+                let itemsString = order.items.map(i => `${i.name} (${i.quantity})`).join(', ');
+                let tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="padding: 8px; border: 1px solid #ddd; font-size: 12px;">${order.dateTime}</td>
+                    <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">${order.customer}</td>
+                    <td style="padding: 8px; border: 1px solid #ddd; font-size: 13px;">${itemsString}</td>
+                `;
+                this.savedTableBody.appendChild(tr);
+            });
+        }
+
+        exportToCSV() {
+            if (this.savedOrders.length === 0) return;
+            let csvContent = "Date & Time,Customer Name,Product Name,Quantity\n";
+            this.savedOrders.forEach(order => {
+                order.items.forEach(item => {
+                    csvContent += `"${order.dateTime}","${order.customer}","${item.name}","${item.quantity}"\n`;
+                });
+            });
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = `Samples_${new Date().toLocaleDateString('en-GB').replace(/\//g, '-')}.csv`;
+            link.click();
+        }
+
+        clearHistory() {
+            if (confirm("Delete all history?")) {
+                this.savedOrders = [];
+                localStorage.removeItem('sample_orders_db');
+                this.renderSavedOrders();
+            }
+        }
+    }
+
+    // Auto-start
+    const sampleApp = new SampleCartApp();
+</script>
 </body>
 </html>
 
