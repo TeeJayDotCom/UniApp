@@ -4,7 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>UniApp Dashboard</title>
+    
+    <!-- SheetJS for Proper Excel Formatting -->
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <style>
         /* ========================================== */
         /* ORIGINAL XYZ STYLES (UNTOUCHED)            */
@@ -36,16 +40,22 @@
         #sample-cart-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #fff; z-index: 9999; overflow-y: auto; }
         .close-modal-btn { background: #333; color: white; border: none; padding: 15px; width: 100%; font-size: 16px; font-weight: bold; cursor: pointer; position: sticky; top: 0; z-index: 10000; }
         
-        /* Toggle Buttons */
         .source-toggle { flex: 1; padding: 12px; border: 1px solid #ccc; background: #f8f9fa; cursor: pointer; border-radius: 6px; font-weight: 600; color: #555; transition: all 0.3s ease; }
         .source-toggle.active { background: #4361ee; color: white; border-color: #4361ee; box-shadow: 0 2px 10px rgba(67, 97, 238, 0.3); }
+
+        /* Custom Modal Prompt Styles */
+        #custom-prompt-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 10005; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(5px); }
+        .prompt-box { background: #fff; width: 100%; max-width: 350px; border-radius: 12px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        .prompt-title { margin-top: 0; color: #333; font-size: 14px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+        .prompt-desc { font-size: 14px; color: #666; margin-bottom: 15px; font-weight: 600; }
+        .prompt-input { width: 100%; padding: 12px; border: 2px solid #4361ee; border-radius: 6px; font-size: 16px; margin-bottom: 15px; box-sizing: border-box; outline: none; transition: 0.2s; }
+        .prompt-input:focus { box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2); }
+        .prompt-btn-group { display: flex; gap: 10px; }
+        .prompt-btn { flex: 1; padding: 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px; }
     </style>
 </head>
 <body>
 
-    <!-- ========================================== -->
-    <!-- ORIGINAL XYZ HTML (UNTOUCHED)              -->
-    <!-- ========================================== -->
     <iframe id="frame-a" class="app-frame" src="rm.html"></iframe>
     <iframe id="frame-b" class="app-frame" src="fg.html"></iframe>
 
@@ -60,13 +70,12 @@
         </button>
     </nav>
 
-    <!-- ========================================== -->
-    <!-- NEW SAMPLE CART APP HTML                   -->
-    <!-- ========================================== -->
+    <!-- Floating Sample Button -->
     <button id="floating-sample-btn" onclick="document.getElementById('sample-cart-modal').style.display='block'">
         📦 Samples
     </button>
 
+    <!-- Main Sample Cart Modal -->
     <div id="sample-cart-modal">
         <button class="close-modal-btn" onclick="document.getElementById('sample-cart-modal').style.display='none'">
             ↓ Close Sample Panel ↓
@@ -75,19 +84,17 @@
         <div style="padding: 20px;">
             <h2 style="margin-top:0; color: #333;">📦 Dispatch Samples</h2>
 
-            <!-- Database Toggle -->
             <div style="display: flex; gap: 10px; margin-bottom: 20px;">
                 <button id="toggle-rm" class="source-toggle active">Raw Materials</button>
                 <button id="toggle-fg" class="source-toggle">FG Vault</button>
             </div>
 
-            <!-- Search Area -->
             <div style="position: relative; margin-bottom: 20px;">
-                <input type="text" id="oop-search-input" placeholder="Search by Name or Item Code..." style="width: 100%; padding: 12px; font-size: 16px; border: 1px solid #ccc; box-sizing: border-box; border-radius: 4px;">
-                <div id="oop-suggestions" style="position: absolute; width: 100%; background: #fff; border: 1px solid #ddd; max-height: 250px; overflow-y: auto; display: none; z-index: 99; box-shadow: 0 4px 15px rgba(0,0,0,0.1);"></div>
+                <input type="text" id="oop-search-input" placeholder="Search by Name or Code..." style="width: 100%; padding: 12px; font-size: 16px; border: 1px solid #ccc; box-sizing: border-box; border-radius: 4px; outline: none;">
+                <!-- Increased Max Height for dropdown -->
+                <div id="oop-suggestions" style="position: absolute; width: 100%; background: #fff; border: 1px solid #ddd; max-height: 60vh; overflow-y: auto; display: none; z-index: 99; box-shadow: 0 4px 15px rgba(0,0,0,0.15);"></div>
             </div>
 
-            <!-- Cart Area -->
             <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #eee;">
                 <h3 style="margin-top:0; color: #333;">🛒 Current Cart</h3>
                 <ul id="oop-cart-list" style="list-style-type: none; padding: 0; margin: 0; color: #333;"></ul>
@@ -96,10 +103,9 @@
                 </button>
             </div>
 
-            <!-- History Area -->
             <h3 style="color: #333;">📂 Saved Dispatched Samples</h3>
             <div style="margin-bottom: 15px; display: flex; gap: 10px;">
-                <button id="oop-export-btn" style="background: #28a745; color: white; border: none; padding: 10px; border-radius: 4px; cursor: pointer; flex: 1; font-weight: bold;">📥 Excel CSV</button>
+                <button id="oop-export-btn" style="background: #28a745; color: white; border: none; padding: 10px; border-radius: 4px; cursor: pointer; flex: 1; font-weight: bold;">📥 Download Excel</button>
                 <button onclick="sampleApp.clearHistory()" style="background: #dc3545; color: white; border: none; padding: 10px; border-radius: 4px; cursor: pointer; flex: 1; font-weight: bold;">🗑️ Clear</button>
             </div>
 
@@ -118,9 +124,19 @@
         </div>
     </div>
 
-    <!-- ========================================== -->
-    <!-- ORIGINAL XYZ SCRIPT (UNTOUCHED)            -->
-    <!-- ========================================== -->
+    <!-- Custom Prompt Overlay -->
+    <div id="custom-prompt-overlay">
+        <div class="prompt-box">
+            <h3 id="prompt-title" class="prompt-title">ENTER QUANTITY FOR</h3>
+            <p id="prompt-desc" class="prompt-desc"></p>
+            <input type="text" id="prompt-input" class="prompt-input" autocomplete="off">
+            <div class="prompt-btn-group">
+                <button id="prompt-cancel" class="prompt-btn" style="background:#eee; color:#333;">Cancel</button>
+                <button id="prompt-confirm" class="prompt-btn" style="background:#4361ee; color:white;">Confirm</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         function switchApp(app) {
             const frameA = document.getElementById('frame-a');
@@ -132,30 +148,23 @@
             if (app === 'a') {
                 frameA.style.opacity = '1'; frameA.style.pointerEvents = 'auto'; frameA.style.zIndex = '10';
                 frameB.style.opacity = '0'; frameB.style.pointerEvents = 'none'; frameB.style.zIndex = '5';
-                
                 btnA.classList.add('active'); btnB.classList.remove('active');
                 nav.className = 'theme-light';
                 document.body.style.background = '#f8f9fa';
             } else {
                 frameB.style.opacity = '1'; frameB.style.pointerEvents = 'auto'; frameB.style.zIndex = '10';
                 frameA.style.opacity = '0'; frameA.style.pointerEvents = 'none'; frameA.style.zIndex = '5';
-                
                 btnB.classList.add('active'); btnA.classList.remove('active');
                 nav.className = 'theme-dark';
                 document.body.style.background = '#000000';
             }
         }
-    </script>
 
-    <!-- ========================================== -->
-    <!-- NEW SAMPLE CART APP SCRIPT                 -->
-    <!-- ========================================== -->
-    <script>
         class SampleCartApp {
             constructor() {
                 this.cart = []; 
                 this.savedOrders = JSON.parse(localStorage.getItem('sample_orders_db')) || [];
-                this.currentSource = 'RM'; // Default to Raw Materials
+                this.currentSource = 'RM'; 
 
                 this.searchInput = document.getElementById('oop-search-input');
                 this.suggestionsBox = document.getElementById('oop-suggestions');
@@ -167,6 +176,15 @@
                 this.btnRM = document.getElementById('toggle-rm');
                 this.btnFG = document.getElementById('toggle-fg');
 
+                // Prompt Elements
+                this.promptOverlay = document.getElementById('custom-prompt-overlay');
+                this.promptTitle = document.getElementById('prompt-title');
+                this.promptDesc = document.getElementById('prompt-desc');
+                this.promptInput = document.getElementById('prompt-input');
+                this.promptCancel = document.getElementById('prompt-cancel');
+                this.promptConfirm = document.getElementById('prompt-confirm');
+                this.promptCallback = null;
+
                 this.initEvents();
                 this.renderSavedOrders();
             }
@@ -174,11 +192,55 @@
             initEvents() {
                 this.searchInput.addEventListener('input', (e) => this.handleSearch(e.target.value));
                 this.finaliseBtn.addEventListener('click', () => this.finaliseOrder());
-                this.exportBtn.addEventListener('click', () => this.exportToCSV());
+                this.exportBtn.addEventListener('click', () => this.exportToExcel());
                 
-                // Toggle Logic
                 this.btnRM.addEventListener('click', () => this.switchSource('RM'));
                 this.btnFG.addEventListener('click', () => this.switchSource('FG'));
+
+                // Click outside to hide search suggestions
+                document.addEventListener('click', (e) => {
+                    if (e.target !== this.searchInput && !this.suggestionsBox.contains(e.target)) {
+                        this.suggestionsBox.style.display = 'none';
+                    }
+                });
+            }
+
+            // Custom UI Prompt Function
+            showCustomPrompt(title, desc, placeholder, callback) {
+                this.promptTitle.innerText = title;
+                this.promptDesc.innerText = desc;
+                this.promptInput.placeholder = placeholder;
+                this.promptInput.value = '';
+                this.promptCallback = callback;
+                
+                this.promptOverlay.style.display = 'flex';
+                this.promptInput.focus();
+
+                const handleConfirm = () => {
+                    const val = this.promptInput.value.trim();
+                    if (val) {
+                        close();
+                        if (this.promptCallback) this.promptCallback(val);
+                    } else {
+                        this.promptInput.style.borderColor = 'red';
+                    }
+                };
+
+                const close = () => {
+                    this.promptOverlay.style.display = 'none';
+                    this.promptConfirm.removeEventListener('click', handleConfirm);
+                    this.promptCancel.removeEventListener('click', close);
+                    this.promptInput.onkeyup = null;
+                    this.promptInput.style.borderColor = '#4361ee';
+                };
+
+                // Allow hitting "Enter" key to confirm
+                this.promptInput.onkeyup = (e) => {
+                    if (e.key === 'Enter') handleConfirm();
+                };
+
+                this.promptConfirm.addEventListener('click', handleConfirm);
+                this.promptCancel.addEventListener('click', close);
             }
 
             switchSource(source) {
@@ -187,17 +249,14 @@
                 this.suggestionsBox.style.display = 'none';
                 
                 if (source === 'RM') {
-                    this.btnRM.classList.add('active');
-                    this.btnFG.classList.remove('active');
+                    this.btnRM.classList.add('active'); this.btnFG.classList.remove('active');
                 } else {
-                    this.btnFG.classList.add('active');
-                    this.btnRM.classList.remove('active');
+                    this.btnFG.classList.add('active'); this.btnRM.classList.remove('active');
                 }
             }
 
             getDatabaseBySource() {
                 let db = [];
-                
                 if (this.currentSource === 'RM') {
                     try {
                         const frameA = document.getElementById('frame-a').contentWindow;
@@ -206,11 +265,10 @@
                             db = rmInventory.map(item => ({
                                 name: item.name || 'Unknown',
                                 code: item.code || 'N/A',
-                                // Uses exact searchable logic from RM code
                                 searchStr: (item.searchableText || item.name + ' ' + item.code).toLowerCase()
                             }));
                         }
-                    } catch(e) { console.warn("RM Data not loaded"); }
+                    } catch(e) {}
                 } else {
                     try {
                         const frameB = document.getElementById('frame-b').contentWindow;
@@ -219,13 +277,11 @@
                             db = fgInventory.map(item => ({
                                 name: item.name || 'Unknown',
                                 code: item.code || 'N/A',
-                                // Uses exact searchable logic from FG code
                                 searchStr: (item.searchIndex || item.name + ' ' + item.code).toLowerCase()
                             }));
                         }
-                    } catch(e) { console.warn("FG Data not loaded"); }
+                    } catch(e) {}
                 }
-                
                 return db;
             }
 
@@ -238,11 +294,9 @@
                     return;
                 }
 
-                // Split the query into individual words just like rm.html and fg.html do
                 const searchTerms = query.split(/\s+/).filter(term => term.length > 0);
                 const liveDatabase = this.getDatabaseBySource();
                 
-                // Match items where EVERY typed word is found in the search string, regardless of order
                 const matches = liveDatabase.filter(p => {
                     return searchTerms.every(term => p.searchStr.includes(term));
                 });
@@ -251,11 +305,12 @@
                     this.suggestionsBox.style.display = 'block';
                     matches.forEach(match => {
                         let div = document.createElement('div');
-                        div.style.cssText = "padding: 12px; border-bottom: 1px solid #eee; cursor: pointer; color: #333; display: flex; justify-content: space-between; align-items: center;";
+                        div.style.cssText = "padding: 14px; border-bottom: 1px solid #eee; cursor: pointer; color: #333; display: flex; justify-content: space-between; align-items: center;";
                         
+                        // Made Item Code bigger, bold, and black color
                         div.innerHTML = `
-                            <strong style="flex: 1; margin-right: 10px;">${match.name}</strong> 
-                            <span style="font-size: 11px; background: #e9ecef; padding: 4px 8px; border-radius: 4px; font-family: monospace; white-space: nowrap;">${match.code}</span>
+                            <strong style="flex: 1; margin-right: 15px; font-size: 15px;">${match.name}</strong> 
+                            <span style="font-size: 14px; font-weight: bold; background: #e2e8f0; color: #000; padding: 6px 10px; border-radius: 6px; font-family: monospace; white-space: nowrap;">${match.code}</span>
                         `;
                         
                         div.addEventListener('click', () => this.promptQuantity(match.name, match.code));
@@ -267,14 +322,18 @@
             }
 
             promptQuantity(productName, productCode) {
-                let qty = prompt(`Enter quantity for:\n${productName} (${productCode})`);
-                if (qty && qty.trim() !== "") {
-                    // Save item as Name [Code] in the cart array
-                    this.cart.push({ name: `${productName} [${productCode}]`, quantity: qty.trim() });
-                    this.updateCartUI();
-                }
-                this.searchInput.value = '';
-                this.suggestionsBox.style.display = 'none';
+                // Using new Custom Prompt Modal
+                this.showCustomPrompt(
+                    "ENTER QUANTITY FOR:",
+                    `${productName} (${productCode})`,
+                    "e.g., 2pc, 100ml...",
+                    (qty) => {
+                        this.cart.push({ name: `${productName} [${productCode}]`, quantity: qty });
+                        this.updateCartUI();
+                        this.searchInput.value = '';
+                        this.suggestionsBox.style.display = 'none';
+                    }
+                );
             }
 
             updateCartUI() {
@@ -289,20 +348,25 @@
             }
 
             finaliseOrder() {
-                let customerName = prompt("Enter Customer Name to finalise these samples:");
-                if (customerName && customerName.trim() !== "") {
-                    const newOrder = {
-                        id: Date.now(),
-                        dateTime: new Date().toLocaleString('en-GB'),
-                        customer: customerName.trim(),
-                        items: [...this.cart] 
-                    };
-                    this.savedOrders.push(newOrder);
-                    localStorage.setItem('sample_orders_db', JSON.stringify(this.savedOrders));
-                    this.cart = [];
-                    this.updateCartUI();
-                    this.renderSavedOrders();
-                }
+                // Using new Custom Prompt Modal
+                this.showCustomPrompt(
+                    "FINALISE SAMPLES",
+                    "Enter the name of the customer",
+                    "Customer Name...",
+                    (customerName) => {
+                        const newOrder = {
+                            id: Date.now(),
+                            dateTime: new Date().toLocaleString('en-GB'),
+                            customer: customerName,
+                            items: [...this.cart] 
+                        };
+                        this.savedOrders.push(newOrder);
+                        localStorage.setItem('sample_orders_db', JSON.stringify(this.savedOrders));
+                        this.cart = [];
+                        this.updateCartUI();
+                        this.renderSavedOrders();
+                    }
+                );
             }
 
             renderSavedOrders() {
@@ -320,22 +384,44 @@
                 });
             }
 
-            exportToCSV() {
+            exportToExcel() {
                 if (this.savedOrders.length === 0) return;
-                let csvContent = "Date & Time,Customer Name,Product Name,Quantity\n";
+                
+                let exportData = [];
+                let latestCustomer = "Record";
+                
+                // Get the most recently added customer name to format filename dynamically
+                if (this.savedOrders.length > 0) {
+                    latestCustomer = this.savedOrders[this.savedOrders.length - 1].customer.replace(/[^a-zA-Z0-9 ]/g, "").trim();
+                }
+
+                // Compile data for SheetJS
                 this.savedOrders.forEach(order => {
                     order.items.forEach(item => {
-                        let cleanCustomer = `"${order.customer.replace(/"/g, '""')}"`;
-                        let cleanProduct = `"${item.name.replace(/"/g, '""')}"`;
-                        let cleanQty = `"${item.quantity.replace(/"/g, '""')}"`;
-                        csvContent += `"${order.dateTime}",${cleanCustomer},${cleanProduct},${cleanQty}\n`;
+                        exportData.push({
+                            "Date & Time": order.dateTime,
+                            "Customer Name": order.customer,
+                            "Product Name & Code": item.name,
+                            "Quantity": item.quantity
+                        });
                     });
                 });
-                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-                const link = document.createElement("a");
-                link.href = URL.createObjectURL(blob);
-                link.download = `Samples_${new Date().toLocaleDateString('en-GB').replace(/\//g, '-')}.csv`;
-                link.click();
+
+                // Generate Workbook with Fixed Column Widths
+                const ws = XLSX.utils.json_to_sheet(exportData);
+                ws['!cols'] = [
+                    { wch: 20 }, // Date & Time width
+                    { wch: 25 }, // Customer Name width
+                    { wch: 50 }, // Product Name width (spacious)
+                    { wch: 15 }  // Quantity width
+                ];
+
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "Samples");
+                
+                // Generate Dynamic Filename (e.g., Samples_Vikas_12-09-2026.xlsx)
+                const dateStr = new Date().toLocaleDateString('en-GB').replace(/\//g, '-');
+                XLSX.writeFile(wb, `Samples_${latestCustomer}_${dateStr}.xlsx`);
             }
 
             clearHistory() {
