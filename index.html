@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>UniApp Dashboard</title>
     
-    <!-- ExcelJS for Proper Excel Formatting -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -35,17 +34,17 @@
         .theme-dark .nav-btn.active { color: #00E676; text-shadow: 0 0 10px rgba(0,230,118,0.4); }
 
         /* ========================================== */
-        /* MODERN GRADIENT UI WITH PREMIUM FOREGROUND */
+        /* MODERN GRADIENT UI WITH PROMINENT CARDS    */
         /* ========================================== */
         :root {
             --brand-primary: #5935DE; 
             --brand-secondary: #2C69D1; 
+            --brand-accent: #FF3366; /* Vibrant Ruby/Coral replacing Green */
             --brand-gradient: linear-gradient(135deg, #5935DE 0%, #2C69D1 100%);
+            --accent-gradient: linear-gradient(135deg, #FF512F 0%, #DD2476 100%);
             --brand-text: #1E1E2F;
-            --glass-bg: rgba(255, 255, 255, 0.90); /* Transparent white for glass effect */
         }
 
-        /* Top-Mid FAB */
         #floating-sample-btn { 
             position: fixed; top: 12px; left: 50%; transform: translateX(-50%); z-index: 9990; 
             background: var(--brand-gradient); 
@@ -56,7 +55,6 @@
         }
         #floating-sample-btn:active { transform: translateX(-50%) scale(0.95); box-shadow: 0 4px 15px rgba(89, 53, 222, 0.3); }
 
-        /* Vibrant Background */
         #sample-cart-modal { 
             display: none; position: fixed; inset: 0; 
             background: linear-gradient(135deg, #3753E8 0%, #7E2BDC 100%); 
@@ -65,7 +63,6 @@
         }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Wavy Background Elements */
         #sample-cart-modal::before {
             content: ''; position: fixed; top: -10%; left: -20%; width: 70vw; height: 70vw;
             background: radial-gradient(circle, rgba(135, 65, 245, 0.6) 0%, transparent 70%);
@@ -77,7 +74,6 @@
             border-radius: 50%; z-index: -1; pointer-events: none;
         }
 
-        /* Transparent Header */
         .sc-header { 
             display: flex; justify-content: space-between; align-items: center; 
             padding: 30px 24px 15px 24px; position: sticky; top: 0; z-index: 100;
@@ -96,22 +92,27 @@
         .close-modal-btn:hover { background: rgba(255,255,255,0.2); border-color: #fff; transform: rotate(90deg); }
         .close-modal-btn:active { transform: scale(0.9); }
 
-        /* Frosted Glass Cards (Not bland anymore) */
+        /* Highly Prominent Solid Cards */
         .sc-card { 
-            background: var(--glass-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-            border-radius: 28px; padding: 24px; margin: 15px 24px; 
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15), inset 0 1px 1px rgba(255,255,255,0.8); 
-            border: 1px solid rgba(255, 255, 255, 0.5); position: relative;
+            background: #ffffff; 
+            border-radius: 24px; padding: 24px; margin: 15px 24px; 
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25); 
+            border: 2px solid rgba(255, 255, 255, 1); position: relative;
         }
+        
+        /* Fixed Stacking Order so Search List overlaps below elements */
+        .search-card { z-index: 50; }
+        .cart-card { z-index: 40; }
+        .history-card { z-index: 30; }
+
         .sc-card-title { 
             font-size: 15px; font-weight: 900; color: var(--brand-primary); 
             text-transform: uppercase; letter-spacing: 1px; margin: 0 0 20px 0; 
             display: flex; align-items: center; gap: 10px;
         }
 
-        /* Plush Segmented Toggles */
         .toggle-group { 
-            display: flex; gap: 8px; margin-bottom: 24px; background: rgba(0,0,0,0.04); 
+            display: flex; gap: 8px; margin-bottom: 24px; background: #f4f5f7; 
             padding: 6px; border-radius: 100px; box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);
         }
         .source-toggle { 
@@ -125,25 +126,21 @@
             box-shadow: 0 4px 15px rgba(89, 53, 222, 0.2); 
         }
 
-        /* 3D Search Input */
         .sc-search-wrap { position: relative; z-index: 1000; }
         .sc-search-input { 
-            width: 100%; padding: 18px 24px; font-family: 'Inter', sans-serif; font-size: 15px; font-weight: 600;
-            background: rgba(255,255,255,0.7); border: 2px solid rgba(89, 53, 222, 0.1); border-radius: 20px; 
+            width: 100%; padding: 18px 24px; font-family: 'Inter', sans-serif; font-size: 15px; font-weight: 700;
+            background: #f8f9fa; border: 2px solid #e9ecef; border-radius: 20px; 
             box-sizing: border-box; outline: none; transition: 0.3s; color: var(--brand-text);
-            box-shadow: inset 0 2px 6px rgba(0,0,0,0.02);
         }
         .sc-search-input:focus { 
             background: #fff; border-color: var(--brand-primary); 
-            box-shadow: 0 0 0 4px rgba(89, 53, 222, 0.15), inset 0 2px 6px rgba(0,0,0,0.02); 
+            box-shadow: 0 0 0 4px rgba(89, 53, 222, 0.15); 
         }
         
-        /* Premium Dropdown */
         #oop-suggestions { 
-            position: absolute; top: calc(100% + 8px); left: 0; width: 100%; background: rgba(255,255,255,0.95); 
-            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.8); 
-            border-radius: 20px; max-height: 40vh; overflow-y: auto; display: none; 
-            z-index: 10000; box-shadow: 0 20px 40px rgba(0,0,0,0.15); padding: 8px;
+            position: absolute; top: calc(100% + 8px); left: 0; width: 100%; background: #ffffff; 
+            border: 1px solid #e9ecef; border-radius: 20px; max-height: 40vh; overflow-y: auto; display: none; 
+            z-index: 10000; box-shadow: 0 20px 50px rgba(0,0,0,0.2); padding: 8px;
         }
         .suggestion-item { 
             padding: 16px; margin-bottom: 4px; cursor: pointer; display: flex; 
@@ -151,15 +148,13 @@
         }
         .suggestion-item:hover { background: rgba(89, 53, 222, 0.05); }
         .sugg-name { flex: 1; margin-right: 15px; font-size: 14px; font-weight: 700; color: var(--brand-text); }
-        .sugg-code { font-size: 12px; font-weight: 800; color: var(--brand-primary); background: #ffffff; padding: 6px 12px; border-radius: 10px; font-family: monospace; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 1px solid rgba(89, 53, 222, 0.1); }
+        .sugg-code { font-size: 12px; font-weight: 800; color: var(--brand-primary); background: #f8f9fa; padding: 6px 12px; border-radius: 10px; font-family: monospace; border: 1px solid #e9ecef; }
 
-        /* Styled Cart List */
         .sc-list-item { padding: 16px 0; border-bottom: 1px dashed rgba(89, 53, 222, 0.2); display: flex; justify-content: space-between; align-items: center; font-size: 14px; }
         .sc-list-item:last-child { border-bottom: none; }
         .cart-name { font-weight: 700; color: var(--brand-text); }
         .cart-qty { font-weight: 900; color: var(--brand-primary); font-size: 16px; background: rgba(89, 53, 222, 0.1); padding: 4px 10px; border-radius: 8px; }
         
-        /* Vibrant Pill Buttons */
         .sc-btn-primary { 
             background: var(--brand-gradient); color: white; border: none; 
             padding: 18px; font-family: 'Inter', sans-serif; font-size: 15px; width: 100%; margin-top: 15px; border-radius: 100px; 
@@ -167,23 +162,22 @@
         }
         .sc-btn-primary:active { transform: translateY(2px); box-shadow: 0 4px 10px rgba(89, 53, 222, 0.3); }
         
-        .sc-btn-success { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; border: none; border-radius: 100px; padding: 14px; font-weight: 800; font-family: 'Inter'; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3); transition: 0.2s; }
-        .sc-btn-success:active { transform: scale(0.98); }
+        /* New Export & Delete Buttons (No Green) */
+        .sc-btn-export { background: var(--accent-gradient); color: #fff; border: none; border-radius: 100px; padding: 14px; font-weight: 800; font-family: 'Inter'; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 8px 20px rgba(221, 36, 118, 0.3); transition: 0.2s; }
+        .sc-btn-export:active { transform: scale(0.98); }
 
         .sc-btn-danger { background: rgba(239, 71, 111, 0.1); color: #ef476f; border: 2px solid rgba(239, 71, 111, 0.2); border-radius: 100px; padding: 14px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
         .sc-btn-danger:active { transform: scale(0.98); background: rgba(239, 71, 111, 0.2); }
 
-        /* Tinted Table */
         .sc-table { width: 100%; border-collapse: collapse; font-size: 13px; color: var(--brand-text); }
         .sc-table th { padding: 12px 10px; font-weight: 800; color: var(--brand-primary); text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; background: rgba(89, 53, 222, 0.05); border-radius: 8px; }
         .sc-table td { padding: 16px 10px; border-bottom: 1px dashed rgba(89, 53, 222, 0.15); vertical-align: top; }
 
-        /* Unified Prompt Overlay (Glassmorphism) */
-        #custom-prompt-overlay { display: none; position: fixed; inset: 0; background: rgba(30, 30, 47, 0.7); z-index: 100005; align-items: center; justify-content: center; padding: 20px; font-family: 'Inter', sans-serif; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
-        .prompt-box { background: rgba(255,255,255,0.95); border: 1px solid rgba(255,255,255,0.5); width: 100%; max-width: 320px; border-radius: 30px; padding: 30px; box-shadow: 0 30px 60px rgba(0,0,0,0.4); text-align: center; }
+        #custom-prompt-overlay { display: none; position: fixed; inset: 0; background: rgba(30, 30, 47, 0.8); z-index: 100005; align-items: center; justify-content: center; padding: 20px; font-family: 'Inter', sans-serif; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+        .prompt-box { background: #ffffff; width: 100%; max-width: 320px; border-radius: 30px; padding: 30px; box-shadow: 0 30px 60px rgba(0,0,0,0.5); text-align: center; }
         .prompt-title { margin-top: 0; color: var(--brand-primary); font-size: 15px; font-weight: 900; text-transform: uppercase; margin-bottom: 10px; letter-spacing: 1px; }
         .prompt-desc { font-size: 14px; color: #6c757d; margin-bottom: 24px; font-weight: 600; line-height: 1.5; }
-        .prompt-input { width: 100%; padding: 16px; border: 2px solid rgba(89, 53, 222, 0.1); background: #f8f9fa; border-radius: 16px; font-size: 16px; font-weight: 700; font-family: 'Inter'; margin-bottom: 24px; box-sizing: border-box; outline: none; transition: 0.2s; text-align: center; color: var(--brand-text); box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); }
+        .prompt-input { width: 100%; padding: 16px; border: 2px solid #e9ecef; background: #f8f9fa; border-radius: 16px; font-size: 16px; font-weight: 700; font-family: 'Inter'; margin-bottom: 24px; box-sizing: border-box; outline: none; transition: 0.2s; text-align: center; color: var(--brand-text); }
         .prompt-input:focus { border-color: var(--brand-primary); background: #fff; box-shadow: 0 0 0 4px rgba(89, 53, 222, 0.15); }
         .prompt-btn-group { display: flex; gap: 10px; }
         .prompt-btn { flex: 1; padding: 16px; border: none; border-radius: 100px; font-weight: 800; font-family: 'Inter'; cursor: pointer; font-size: 14px; transition: 0.2s; }
@@ -208,13 +202,11 @@
         </button>
     </nav>
     
-    <!-- Top-Mid FAB -->
     <button id="floating-sample-btn" onclick="document.getElementById('sample-cart-modal').style.display='block'">
         <i class="fas fa-box-open text-lg"></i>
         <span>Samples</span>
     </button>
 
-    <!-- Modern Glass Modal -->
     <div id="sample-cart-modal">
         <div class="sc-header">
             <h2>Dispatch<br>Samples</h2>
@@ -223,7 +215,8 @@
             </button>
         </div>
         
-        <div class="sc-card">
+        <!-- Search Card has highest z-index so dropdown escapes container -->
+        <div class="sc-card search-card">
             <h3 class="sc-card-title">
                 <div style="background: rgba(89, 53, 222, 0.1); padding: 8px; border-radius: 10px; display: flex;"><i class="fas fa-search" style="color: var(--brand-primary)"></i></div> 
                 Source & Search
@@ -238,7 +231,7 @@
             </div>
         </div>
 
-        <div class="sc-card" id="cart-container" style="display: none;">
+        <div class="sc-card cart-card" id="cart-container" style="display: none;">
             <h3 class="sc-card-title">
                 <div style="background: rgba(89, 53, 222, 0.1); padding: 8px; border-radius: 10px; display: flex;"><i class="fas fa-shopping-bag" style="color: var(--brand-primary)"></i></div> 
                 Current Cart
@@ -249,13 +242,13 @@
             </button>
         </div>
 
-        <div class="sc-card">
+        <div class="sc-card history-card">
             <h3 class="sc-card-title">
-                <div style="background: rgba(16, 185, 129, 0.1); padding: 8px; border-radius: 10px; display: flex;"><i class="fas fa-history" style="color: #10b981"></i></div> 
+                <div style="background: rgba(221, 36, 118, 0.1); padding: 8px; border-radius: 10px; display: flex;"><i class="fas fa-history" style="color: #DD2476"></i></div> 
                 Dispatched Records
             </h3>
             <div style="display: flex; gap: 10px; margin-bottom: 20px;">
-                <button id="oop-export-btn" class="sc-btn-success" style="flex: 3;">
+                <button id="oop-export-btn" class="sc-btn-export" style="flex: 3;">
                     <i class="fas fa-file-excel"></i> Download Excel
                 </button>
                 <button onclick="sampleApp.clearHistory()" class="sc-btn-danger" style="flex: 1;">
@@ -388,7 +381,7 @@
                     this.promptConfirm.removeEventListener('click', handleConfirm);
                     this.promptCancel.removeEventListener('click', close);
                     this.promptInput.onkeyup = null;
-                    this.promptInput.style.borderColor = 'rgba(89, 53, 222, 0.1)';
+                    this.promptInput.style.borderColor = '#e9ecef';
                 };
 
                 this.promptInput.onkeyup = (e) => { if (e.key === 'Enter') handleConfirm(); };
