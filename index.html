@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>UniApp Dashboard</title>
     
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+    <!-- html2canvas for generating screenshots -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     
@@ -34,7 +35,7 @@
         .theme-dark .nav-btn.active { color: #4cc9f0; text-shadow: 0 0 10px rgba(76,201,240,0.4); }
 
         /* ========================================== */
-        /* COMPACT LAYOUT WITH NEW VIBRANT STYLE      */
+        /* COMPACT LAYOUT WITH CLEAR USER INPUTS      */
         /* ========================================== */
         :root {
             --brand-primary: #5935DE; 
@@ -64,7 +65,7 @@
         }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Wavy Background Elements from Reference Image */
+        /* Wavy Background Elements */
         #sample-cart-modal::before {
             content: ''; position: fixed; top: -10%; left: -20%; width: 70vw; height: 70vw;
             background: radial-gradient(circle, rgba(135, 65, 245, 0.6) 0%, transparent 70%);
@@ -93,7 +94,6 @@
         .close-modal-btn:hover { background: rgba(255,255,255,0.2); }
         .close-modal-btn:active { transform: scale(0.9); }
 
-        /* Original Compact Card Sizing */
         .sc-card { 
             background: var(--brand-card-bg); backdrop-filter: blur(10px); 
             border-radius: 16px; padding: 16px 20px; margin: 16px 20px; 
@@ -111,7 +111,6 @@
         }
         .sc-card-title i { color: var(--brand-primary); }
 
-        /* Original Compact Toggles */
         .toggle-group { 
             display: flex; gap: 6px; margin-bottom: 16px; background: #f1f3f5; 
             padding: 4px; border-radius: 12px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
@@ -126,17 +125,28 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.08); 
         }
 
+        /* ---------------------------------------------------- */
+        /* UI FIX: CLEAR & PROMINENT SEARCH INPUT FIELD         */
+        /* ---------------------------------------------------- */
         .sc-search-wrap { position: relative; z-index: 1000; }
         .sc-search-input { 
-            width: 100%; padding: 14px 16px; font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 600;
-            background: #f8f9fa; border: 2px solid transparent; border-radius: 12px; 
+            width: 100%; padding: 14px 16px 14px 40px; font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 600;
+            background: #ffffff; /* Explicit White background */
+            border: 2px solid rgba(89, 53, 222, 0.25); /* Clear visible border */
+            border-radius: 12px; 
             box-sizing: border-box; outline: none; transition: 0.3s; color: var(--brand-text);
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05); /* Slight shadow to pop out */
         }
+        .sc-search-input::placeholder { color: #8e9aab; font-weight: 500; }
         .sc-search-input:focus { 
-            background: #fff; border-color: var(--brand-primary); 
-            box-shadow: 0 0 0 3px rgba(89, 53, 222, 0.15); 
+            border-color: var(--brand-primary); 
+            box-shadow: 0 0 0 4px rgba(89, 53, 222, 0.15), 0 2px 6px rgba(0,0,0,0.05); 
         }
+        .search-icon-left {
+            position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+            color: #8e9aab; font-size: 14px; pointer-events: none; transition: 0.3s;
+        }
+        .sc-search-input:focus ~ .search-icon-left { color: var(--brand-primary); }
         
         #oop-suggestions { 
             position: absolute; top: calc(100% + 6px); left: 0; width: 100%; background: #ffffff; 
@@ -156,7 +166,6 @@
         .cart-name { font-weight: 600; color: var(--brand-text); }
         .cart-qty { font-weight: 800; color: var(--brand-primary); font-size: 14px; background: rgba(89, 53, 222, 0.1); padding: 4px 8px; border-radius: 6px; }
         
-        /* Original Compact Buttons */
         .sc-btn-primary { 
             background: var(--brand-gradient); color: white; border: none; 
             padding: 14px; font-family: 'Inter', sans-serif; font-size: 14px; width: 100%; margin-top: 12px; border-radius: 12px; 
@@ -170,17 +179,31 @@
         .sc-btn-danger { background: #f8f9fa; color: #4a5568; border: 1px solid var(--brand-border); border-radius: 12px; padding: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
         .sc-btn-danger:active { transform: scale(0.98); background: #e9ecef; }
 
-        .sc-table { width: 100%; border-collapse: collapse; font-size: 12px; color: var(--brand-text); }
+        .sc-table { width: 100%; border-collapse: collapse; font-size: 12px; color: var(--brand-text); background: #fff; }
         .sc-table th { padding: 10px 8px; border-bottom: 2px solid var(--brand-border); font-weight: 700; color: var(--brand-text-muted); text-align: left; text-transform: uppercase; }
         .sc-table td { padding: 14px 8px; border-bottom: 1px solid var(--brand-border); vertical-align: top; }
 
-        /* Unified Prompt Overlay */
         #custom-prompt-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 100005; align-items: center; justify-content: center; padding: 20px; font-family: 'Inter', sans-serif; backdrop-filter: blur(5px); }
         .prompt-box { background: #ffffff; width: 100%; max-width: 320px; border-radius: 20px; padding: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.3); text-align: center; }
         .prompt-title { margin-top: 0; color: var(--brand-primary); font-size: 14px; font-weight: 800; text-transform: uppercase; margin-bottom: 10px; }
         .prompt-desc { font-size: 13px; color: var(--brand-text-muted); margin-bottom: 20px; font-weight: 500; line-height: 1.5; }
-        .prompt-input { width: 100%; padding: 14px; border: 2px solid transparent; background: #f8f9fa; border-radius: 12px; font-size: 15px; font-weight: 600; font-family: 'Inter'; margin-bottom: 20px; box-sizing: border-box; outline: none; transition: 0.2s; text-align: center; color: var(--brand-text); box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); }
-        .prompt-input:focus { border-color: var(--brand-primary); background: #fff; box-shadow: 0 0 0 3px rgba(89, 53, 222, 0.15); }
+        
+        /* ---------------------------------------------------- */
+        /* UI FIX: CLEAR PROMPT INPUT FIELD                     */
+        /* ---------------------------------------------------- */
+        .prompt-input { 
+            width: 100%; padding: 14px; 
+            border: 2px solid rgba(89, 53, 222, 0.25); /* Clear visible border */
+            background: #ffffff; /* Explicit white bg */
+            border-radius: 12px; font-size: 15px; font-weight: 600; font-family: 'Inter'; 
+            margin-bottom: 20px; box-sizing: border-box; outline: none; transition: 0.2s; 
+            text-align: center; color: var(--brand-text); box-shadow: 0 2px 6px rgba(0,0,0,0.05); 
+        }
+        .prompt-input:focus { 
+            border-color: var(--brand-primary); 
+            box-shadow: 0 0 0 4px rgba(89, 53, 222, 0.15), 0 2px 6px rgba(0,0,0,0.05); 
+        }
+        
         .prompt-btn-group { display: flex; gap: 10px; }
         .prompt-btn { flex: 1; padding: 12px; border: none; border-radius: 10px; font-weight: 700; font-family: 'Inter'; cursor: pointer; font-size: 13px; transition: 0.2s; }
         .prompt-btn-cancel { background: #f1f3f5; color: #4a5568; }
@@ -225,6 +248,7 @@
             </div>
             <div class="sc-search-wrap">
                 <input type="text" id="oop-search-input" class="sc-search-input" placeholder="Search product name or code...">
+                <i class="fas fa-search search-icon-left"></i>
                 <div id="oop-suggestions"></div>
             </div>
         </div>
@@ -237,17 +261,20 @@
             </button>
         </div>
 
-        <div class="sc-card history-card">
+        <div class="sc-card history-card" id="history-capture-area">
             <h3 class="sc-card-title"><i class="fas fa-history"></i> Dispatched Records</h3>
-            <div style="display: flex; gap: 10px; margin-bottom: 16px;">
+            
+            <div id="history-action-btns" style="display: flex; gap: 10px; margin-bottom: 16px;">
+                <!-- Updated: Share Screenshot Button -->
                 <button id="oop-export-btn" class="sc-btn-export" style="flex: 3;">
-                    <i class="fas fa-file-excel"></i> Download Excel
+                    <i class="fas fa-share-nodes"></i> Share / Export List
                 </button>
                 <button onclick="sampleApp.clearHistory()" class="sc-btn-danger" style="flex: 1;">
                     <i class="fas fa-trash-alt"></i>
                 </button>
             </div>
-            <div style="overflow-x: auto;">
+            
+            <div id="table-wrap" style="overflow-x: auto; background: #fff;">
                 <table class="sc-table">
                     <thead>
                         <tr>
@@ -323,8 +350,6 @@
                 this.promptCancel = document.getElementById('prompt-cancel');
                 this.promptConfirm = document.getElementById('prompt-confirm');
                 
-                this.confirmCallback = null;
-
                 this.initEvents();
                 this.renderSavedOrders();
             }
@@ -332,7 +357,9 @@
             initEvents() {
                 this.searchInput.addEventListener('input', (e) => this.handleSearch(e.target.value));
                 this.finaliseBtn.addEventListener('click', () => this.finaliseOrder());
-                this.exportBtn.addEventListener('click', () => this.exportToExcel());
+                
+                // Screenshot / Native Share Handler
+                this.exportBtn.addEventListener('click', () => this.shareScreenshot());
                 
                 this.btnRM.addEventListener('click', () => this.switchSource('RM'));
                 this.btnFG.addEventListener('click', () => this.switchSource('FG'));
@@ -372,7 +399,7 @@
                     this.promptConfirm.removeEventListener('click', handleConfirm);
                     this.promptCancel.removeEventListener('click', close);
                     this.promptInput.onkeyup = null;
-                    this.promptInput.style.borderColor = 'transparent';
+                    this.promptInput.style.borderColor = 'rgba(89, 53, 222, 0.25)';
                 };
 
                 this.promptInput.onkeyup = (e) => { if (e.key === 'Enter') handleConfirm(); };
@@ -482,7 +509,7 @@
 
             promptQuantity(productName, productCode) {
                 this.showCustomPrompt(
-                    "ENTER QUANTITY FOR",
+                    "ASSIGN QUANTITY",
                     `<strong style="color:var(--brand-text); font-size:14px;">${productName}</strong><br><span style="color:var(--brand-text-muted); font-family:monospace; font-size: 12px; margin-top:6px; display:inline-block;">${productCode}</span>`,
                     "e.g., 2pc, 100ml...",
                     (qty) => {
@@ -513,7 +540,7 @@
             finaliseOrder() {
                 this.showCustomPrompt(
                     "FINALISE SAMPLES",
-                    "Enter the name of the customer",
+                    "Enter the name of the customer:",
                     "Customer Name...",
                     (customerName) => {
                         const newOrder = {
@@ -546,67 +573,64 @@
                 });
             }
 
-            async exportToExcel() {
+            // ----------------------------------------------------
+            // NEW: NATIVE SCREENSHOT & SHARE (WEB SHARE API)
+            // ----------------------------------------------------
+            async shareScreenshot() {
                 if (this.savedOrders.length === 0) return;
                 
-                let exportData = [];
-                let uniqueCustomers = [...new Set(this.savedOrders.map(order => order.customer.replace(/[^a-zA-Z0-9 ]/g, "").trim()))];
-                let filenameCustomer = uniqueCustomers.length === 1 ? uniqueCustomers[0] : "Multiple_Customers";
+                const captureArea = document.getElementById('history-capture-area');
+                const actionBtns = document.getElementById('history-action-btns');
+                const tableWrap = document.getElementById('table-wrap');
 
-                this.savedOrders.forEach(order => {
-                    order.items.forEach(item => {
-                        exportData.push([
-                            order.dateTime,
-                            order.customer,
-                            item.name,
-                            item.quantity
-                        ]);
-                    });
-                });
-
-                const workbook = new ExcelJS.Workbook();
-                const worksheet = workbook.addWorksheet('Samples');
-
-                worksheet.addTable({
-                    name: 'SamplesTable',
-                    ref: 'A1',
-                    headerRow: true,
-                    totalsRow: false,
-                    style: { theme: 'TableStyleMedium2', showRowStripes: true },
-                    columns: [
-                        { name: 'Date & Time', filterButton: true },
-                        { name: 'Customer Name', filterButton: true },
-                        { name: 'Product Name & Code', filterButton: true },
-                        { name: 'Quantity', filterButton: true },
-                    ],
-                    rows: exportData,
-                });
-
-                worksheet.columns.forEach(column => {
-                    let maxLength = 0;
-                    column.eachCell({ includeEmpty: true }, cell => {
-                        let columnLength = cell.value ? cell.value.toString().length : 10;
-                        if (columnLength > maxLength) maxLength = columnLength;
-                    });
-                    column.width = maxLength + 3; 
-                });
-
-                await worksheet.protect('zz', {
-                    selectLockedCells: true, selectUnlockedCells: true,
-                    formatCells: false, formatColumns: false, formatRows: false,
-                    insertColumns: false, insertRows: false, deleteColumns: false,
-                    deleteRows: false, sort: false, autoFilter: true 
-                });
-
-                const buffer = await workbook.xlsx.writeBuffer();
-                const dateStr = new Date().toLocaleDateString('en-GB').replace(/\//g, '-');
-                const fileName = `${filenameCustomer} Samples ${dateStr}.xlsx`;
+                // 1. Prepare UI for clean capture (Hide buttons, reveal full table)
+                actionBtns.style.display = 'none';
+                const originalOverflow = tableWrap.style.overflowX;
+                tableWrap.style.overflowX = 'visible';
                 
-                const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-                const link = document.createElement("a");
-                link.href = URL.createObjectURL(blob);
-                link.download = fileName;
-                link.click();
+                try {
+                    // 2. Capture the card Element as Canvas
+                    const canvas = await html2canvas(captureArea, { 
+                        scale: 2, 
+                        backgroundColor: '#ffffff',
+                        windowWidth: captureArea.scrollWidth,
+                        windowHeight: captureArea.scrollHeight 
+                    });
+                    
+                    // Restore UI immediately
+                    actionBtns.style.display = 'flex';
+                    tableWrap.style.overflowX = originalOverflow;
+
+                    // 3. Convert Canvas to File Blob and trigger Native Share
+                    canvas.toBlob(async (blob) => {
+                        const dateStr = new Date().toLocaleDateString('en-GB').replace(/\//g, '-');
+                        const file = new File([blob], `Samples_Record_${dateStr}.png`, { type: 'image/png' });
+
+                        // Check if browser supports sharing files natively (WhatsApp, Mail, etc.)
+                        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                            try {
+                                await navigator.share({
+                                    files: [file],
+                                    title: 'Sample Dispatched Records',
+                                    text: 'Here is the finalised list of dispatched samples.'
+                                });
+                            } catch (err) {
+                                console.warn('User cancelled share or share failed', err);
+                            }
+                        } else {
+                            // Fallback: If native share unsupported (e.g. some desktops), force Image Download
+                            const link = document.createElement("a");
+                            link.href = URL.createObjectURL(blob);
+                            link.download = file.name;
+                            link.click();
+                        }
+                    }, 'image/png');
+                    
+                } catch (err) {
+                    actionBtns.style.display = 'flex';
+                    tableWrap.style.overflowX = originalOverflow;
+                    console.error('Screenshot process failed', err);
+                }
             }
 
             clearHistory() {
