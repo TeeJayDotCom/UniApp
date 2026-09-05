@@ -8,13 +8,12 @@
     <!-- ExcelJS for Proper Excel Formatting -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
     <style>
         /* ========================================== */
         /* ORIGINAL XYZ STYLES (UNTOUCHED)            */
         /* ========================================== */
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; font-family: -apple-system, sans-serif; background: #f8f9fa; transition: background 0.4s ease; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; background: #f8f9fa; transition: background 0.4s ease; }
         
         .app-frame { border: none; width: 100%; height: calc(100% - 70px); position: absolute; top: 0; left: 0; transition: opacity 0.3s ease; }
         #frame-a { z-index: 10; opacity: 1; pointer-events: auto; }
@@ -35,134 +34,125 @@
         .theme-dark .nav-btn.active { color: #00E676; text-shadow: 0 0 10px rgba(0,230,118,0.4); }
 
         /* ========================================== */
-        /* STOCKFLOW-STYLE SAMPLE CART UI             */
+        /* ULTRA-MODERN FUTURISTIC SAMPLE CART UI     */
         /* ========================================== */
         :root {
-            --sf-primary: #4361ee;
-            --sf-primary-dark: #3a0ca3;
-            --sf-secondary: #7209b7;
-            --sf-success: #4cc9f0;
-            --sf-danger: #ef476f;
-            --sf-background: #f8f9fa;
-            --sf-text: #1a1a2e;
-            --sf-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            --neon-green: #00E676;
+            --neon-blue: #0A84FF;
+            --dark-glass: rgba(15, 15, 20, 0.75);
+            --darker-glass: rgba(10, 10, 15, 0.9);
+            --border-glow: rgba(0, 230, 118, 0.4);
         }
 
-        /* Shifted FAB to Left to prevent overlapping rm.html / fg.html right-side icons */
+        /* Top-Mid Floating Button */
         #floating-sample-btn { 
-            position: fixed; bottom: 90px; left: 20px; z-index: 9990; 
-            background: linear-gradient(135deg, var(--sf-primary) 0%, var(--sf-secondary) 100%); 
-            color: #fff; border: none; border-radius: 30px; padding: 14px 24px; 
-            font-family: 'Inter', sans-serif; font-weight: 700; font-size: 14px; 
-            box-shadow: 0 8px 25px rgba(67, 97, 238, 0.4); cursor: pointer; 
-            display: flex; align-items: center; gap: 10px; transition: transform 0.3s ease;
+            position: fixed; top: 12px; left: 50%; transform: translateX(-50%); z-index: 9990; 
+            background: rgba(10, 10, 15, 0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            color: #fff; border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 30px; 
+            padding: 10px 24px; font-weight: 800; font-size: 13px; letter-spacing: 1px; text-transform: uppercase;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5), inset 0 0 10px rgba(255,255,255,0.05); cursor: pointer; 
+            display: flex; align-items: center; gap: 8px; transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
-        #floating-sample-btn:active { transform: scale(0.95); }
+        #floating-sample-btn:hover { border-color: var(--neon-green); box-shadow: 0 0 15px var(--border-glow), inset 0 0 10px rgba(0,0,0,0.5); color: var(--neon-green); }
+        #floating-sample-btn:active { transform: translateX(-50%) scale(0.92); }
 
-        /* Main Modal Background matching StockFlow */
+        /* Full Screen Dark Modal */
         #sample-cart-modal { 
             display: none; position: fixed; inset: 0; 
-            background: linear-gradient(to bottom right, #f8f9fa, #e0f2fe); 
-            font-family: 'Inter', sans-serif; z-index: 9999; overflow-y: auto; padding-bottom: 40px;
-            animation: fadeIn 0.3s ease-out;
+            background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
+            z-index: 9999; overflow-y: auto; padding-bottom: 40px; color: #fff;
+            animation: fadeIn 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
         }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
 
-        /* Header matching StockFlow Gradient Text */
+        /* Header */
         .sc-header { 
             display: flex; justify-content: space-between; align-items: center; 
-            padding: 24px; position: sticky; top: 0; z-index: 100;
-            background: rgba(248, 249, 250, 0.95); backdrop-filter: blur(10px);
-            border-bottom: 1px solid #e9ecef;
+            padding: 20px 24px; position: sticky; top: 0; z-index: 100;
+            background: linear-gradient(to bottom, rgba(5,5,8,1) 0%, rgba(5,5,8,0.8) 100%);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
         }
-        .sc-header h2 { 
-            margin: 0; font-size: 24px; font-weight: 800; 
-            background: linear-gradient(135deg, var(--sf-primary) 0%, var(--sf-secondary) 100%);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-        }
+        .sc-header h2 { margin: 0; font-size: 20px; font-weight: 900; letter-spacing: 1px; background: linear-gradient(90deg, #fff, #aaa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .close-modal-btn { 
-            background: #fff; color: #6c757d; border: 1px solid #e9ecef; 
-            width: 40px; height: 40px; border-radius: 12px; display: flex; 
-            align-items: center; justify-content: center; font-size: 18px; 
-            cursor: pointer; box-shadow: var(--sf-shadow); transition: 0.2s;
+            background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.1); 
+            width: 36px; height: 36px; border-radius: 50%; display: flex; 
+            align-items: center; justify-content: center; font-size: 14px; 
+            cursor: pointer; transition: 0.2s;
         }
+        .close-modal-btn:hover { background: rgba(239, 71, 111, 0.2); color: #ef476f; border-color: #ef476f; }
         .close-modal-btn:active { transform: scale(0.9); }
 
-        /* StockFlow style Item Cards */
+        /* Futuristic Cards - Removed overflow:hidden to fix search bug */
         .sc-card { 
-            background: linear-gradient(135deg, #ffffff 0%, #f8f9ff 100%);
-            border-radius: 16px; padding: 20px; margin: 20px; 
-            border: 1px solid rgba(255, 255, 255, 0.8); box-shadow: var(--sf-shadow);
-            position: relative; overflow: hidden;
+            background: var(--dark-glass); border-radius: 24px; padding: 24px; margin: 20px; 
+            border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 20px 40px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1);
+            position: relative;
         }
-        .sc-card::before {
-            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
-            background: linear-gradient(90deg, var(--sf-primary) 0%, var(--sf-success) 100%);
-        }
-        .sc-card-title { font-size: 16px; font-weight: 800; color: var(--sf-text); margin: 0 0 16px 0; display: flex; align-items: center; gap: 8px; }
+        .sc-card-title { font-size: 12px; font-weight: 900; color: #888; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 20px; margin-top: 0; display: flex; align-items: center; gap: 8px; }
 
-        /* Toggles */
-        .toggle-group { display: flex; gap: 10px; margin-bottom: 20px; }
+        /* Futuristic Toggles */
+        .toggle-group { display: flex; gap: 8px; background: rgba(0,0,0,0.4); padding: 6px; border-radius: 16px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.05); }
         .source-toggle { 
-            flex: 1; padding: 12px; border: 2px solid #e9ecef; background: #fff; cursor: pointer; 
-            border-radius: 12px; font-family: 'Inter', sans-serif; font-weight: 600; font-size: 14px; color: #6c757d; transition: all 0.3s; 
+            flex: 1; padding: 12px; border: none; background: transparent; cursor: pointer; 
+            border-radius: 12px; font-weight: 700; font-size: 13px; color: #777; transition: all 0.3s; text-transform: uppercase; letter-spacing: 1px;
         }
-        .source-toggle.active { background: #e0f2fe; color: var(--sf-primary); border-color: var(--sf-primary); }
+        .source-toggle.active { background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%); color: #fff; box-shadow: 0 4px 15px rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); }
 
-        /* Modern Input */
-        .sc-search-wrap { position: relative; }
+        /* Search Input */
+        .sc-search-wrap { position: relative; z-index: 1000; }
         .sc-search-input { 
-            width: 100%; padding: 14px 20px; font-family: 'Inter', sans-serif; font-size: 15px; font-weight: 500;
-            background: rgba(255, 255, 255, 0.9); border: 2px solid #e9ecef; border-radius: 12px; 
-            box-sizing: border-box; outline: none; transition: 0.3s; color: var(--sf-text);
+            width: 100%; padding: 16px 20px; font-size: 16px; font-weight: 600;
+            background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; 
+            box-sizing: border-box; outline: none; transition: 0.3s; color: #fff;
         }
-        .sc-search-input:focus { border-color: var(--sf-primary); box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1); background: #fff; }
+        .sc-search-input::placeholder { color: #555; }
+        .sc-search-input:focus { background: rgba(0,0,0,0.8); border-color: var(--neon-blue); box-shadow: 0 0 20px rgba(10, 132, 255, 0.2); }
         
+        /* Fixed Dropdown */
         #oop-suggestions { 
-            position: absolute; width: 100%; background: #fff; border: 1px solid #e9ecef; 
-            border-radius: 12px; max-height: 50vh; overflow-y: auto; display: none; 
-            z-index: 99; box-shadow: var(--sf-shadow); margin-top: 8px;
+            position: absolute; top: 100%; left: 0; width: 100%; background: var(--darker-glass); 
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; max-height: 50vh; overflow-y: auto; display: none; 
+            z-index: 100000; box-shadow: 0 20px 50px rgba(0,0,0,0.8); margin-top: 8px; padding: 8px;
         }
 
-        /* Suggestion List */
-        .suggestion-item { padding: 14px 16px; border-bottom: 1px solid #e9ecef; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; }
-        .suggestion-item:hover { background: #f8f9fa; }
+        .suggestion-item { padding: 14px 16px; border-bottom: 1px solid rgba(255,255,255,0.05); cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; border-radius: 8px; }
+        .suggestion-item:hover { background: rgba(255,255,255,0.1); }
         .suggestion-item:last-child { border-bottom: none; }
-        .sugg-name { flex: 1; margin-right: 15px; font-size: 14px; font-weight: 600; color: var(--sf-text); }
-        .sugg-code { font-size: 12px; font-weight: 700; color: var(--sf-primary); background: #e0f2fe; padding: 4px 8px; border-radius: 6px; font-family: monospace; }
+        .sugg-name { flex: 1; margin-right: 15px; font-size: 14px; font-weight: 600; color: #eee; }
+        .sugg-code { font-size: 12px; font-weight: 800; color: var(--neon-blue); background: rgba(10, 132, 255, 0.1); padding: 4px 8px; border-radius: 6px; font-family: monospace; border: 1px solid rgba(10, 132, 255, 0.2); }
 
         /* Cart List */
-        .sc-list-item { padding: 14px 0; border-bottom: 1px dashed #e9ecef; display: flex; justify-content: space-between; align-items: center; font-size: 14px; }
+        .sc-list-item { padding: 16px 0; border-bottom: 1px dashed rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center; }
         .sc-list-item:last-child { border-bottom: none; }
-        .cart-name { font-weight: 600; color: var(--sf-text); }
-        .cart-qty { font-weight: 800; color: var(--sf-secondary); }
+        .cart-name { font-weight: 600; color: #ddd; font-size: 14px; }
+        .cart-qty { font-weight: 900; color: var(--neon-green); font-size: 16px; text-shadow: 0 0 10px rgba(0,230,118,0.3); }
         
-        /* Modern Button */
+        /* Action Buttons */
         .sc-btn-primary { 
-            background: linear-gradient(135deg, var(--sf-primary) 0%, var(--sf-primary-dark) 100%); color: white; border: none; 
-            padding: 14px; font-family: 'Inter', sans-serif; font-size: 15px; width: 100%; margin-top: 15px; border-radius: 12px; 
-            font-weight: 700; cursor: pointer; box-shadow: 0 8px 20px rgba(67, 97, 238, 0.3); transition: 0.2s;
+            background: linear-gradient(135deg, var(--neon-green) 0%, #00B259 100%); color: #000; border: none; 
+            padding: 16px; font-size: 14px; width: 100%; margin-top: 10px; border-radius: 16px; text-transform: uppercase; letter-spacing: 1px;
+            font-weight: 900; cursor: pointer; box-shadow: 0 10px 30px rgba(0, 230, 118, 0.3); transition: 0.2s;
         }
-        .sc-btn-primary:active { transform: translateY(2px); }
-        
-        .sc-btn-danger { background: linear-gradient(135deg, var(--sf-danger) 0%, #d90429 100%); color: white; border: none; border-radius: 12px; padding: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(239, 71, 111, 0.3); }
-        .sc-btn-success { background: linear-gradient(135deg, var(--sf-success) 0%, #06d6a0 100%); color: white; border: none; border-radius: 12px; padding: 12px; font-weight: 700; font-family: 'Inter'; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 15px rgba(6, 214, 160, 0.3); }
+        .sc-btn-primary:active { transform: scale(0.98); }
 
-        .sc-table { width: 100%; border-collapse: collapse; font-size: 13px; color: var(--sf-text); }
-        .sc-table th { padding: 12px 8px; border-bottom: 2px solid #e9ecef; font-weight: 700; color: #6c757d; text-align: left; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; }
-        .sc-table td { padding: 14px 8px; border-bottom: 1px solid #e9ecef; vertical-align: top; }
+        .sc-table { width: 100%; border-collapse: collapse; font-size: 13px; color: #ddd; }
+        .sc-table th { padding: 12px 8px; border-bottom: 2px solid rgba(255,255,255,0.1); font-weight: 800; color: #888; text-align: left; text-transform: uppercase; font-size: 11px; letter-spacing: 1px; }
+        .sc-table td { padding: 16px 8px; border-bottom: 1px solid rgba(255,255,255,0.05); vertical-align: top; }
+        .sc-table td strong { color: #fff; }
 
-        /* Unified Custom Overlay for Prompt and Confirm */
-        #custom-prompt-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 10005; align-items: center; justify-content: center; padding: 20px; font-family: 'Inter', sans-serif; backdrop-filter: blur(4px); }
-        .prompt-box { background: #fff; width: 100%; max-width: 340px; border-radius: 16px; padding: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.2); text-align: center; }
-        .prompt-title { margin-top: 0; color: var(--sf-text); font-size: 16px; font-weight: 800; text-transform: uppercase; margin-bottom: 8px; }
-        .prompt-desc { font-size: 14px; color: #6c757d; margin-bottom: 20px; font-weight: 500; line-height: 1.4; }
-        .prompt-input { width: 100%; padding: 14px; border: 2px solid #e9ecef; background: #f8f9fa; border-radius: 12px; font-size: 15px; font-weight: 600; font-family: 'Inter'; margin-bottom: 20px; box-sizing: border-box; outline: none; transition: 0.2s; text-align: center; }
-        .prompt-input:focus { border-color: var(--sf-primary); background: #fff; }
+        /* Custom Dark Prompt Overlay */
+        #custom-prompt-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 100005; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+        .prompt-box { background: var(--darker-glass); border: 1px solid rgba(255,255,255,0.1); width: 100%; max-width: 320px; border-radius: 24px; padding: 24px; box-shadow: 0 30px 60px rgba(0,0,0,0.9); text-align: center; color: #fff; }
+        .prompt-title { margin-top: 0; color: var(--neon-blue); font-size: 13px; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 12px; }
+        .prompt-desc { font-size: 15px; color: #ccc; margin-bottom: 20px; font-weight: 600; line-height: 1.5; }
+        .prompt-input { width: 100%; padding: 14px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.5); border-radius: 12px; font-size: 16px; font-weight: 700; color: #fff; margin-bottom: 20px; box-sizing: border-box; outline: none; transition: 0.2s; text-align: center; }
+        .prompt-input:focus { border-color: var(--neon-green); box-shadow: 0 0 15px rgba(0,230,118,0.2); }
         .prompt-btn-group { display: flex; gap: 10px; }
-        .prompt-btn { flex: 1; padding: 12px; border: none; border-radius: 12px; font-weight: 700; font-family: 'Inter'; cursor: pointer; font-size: 14px; transition: 0.2s; }
-        .prompt-btn-cancel { background: #f1f3f5; color: #333; }
-        .prompt-btn-confirm { background: var(--sf-primary); color: white; }
+        .prompt-btn { flex: 1; padding: 14px; border: none; border-radius: 12px; font-weight: 800; cursor: pointer; font-size: 13px; text-transform: uppercase; transition: 0.2s; letter-spacing: 1px; }
+        .prompt-btn-cancel { background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.1); }
+        .prompt-btn-confirm { background: var(--neon-blue); color: #fff; box-shadow: 0 5px 20px rgba(10, 132, 255, 0.4); }
+        .prompt-btn-confirm.green { background: var(--neon-green); color: #000; box-shadow: 0 5px 20px rgba(0, 230, 118, 0.4); }
     </style>
 </head>
 <body>
@@ -181,58 +171,58 @@
         </button>
     </nav>
     
-    <!-- Shifted Left & Styled Like RM App FAB -->
+    <!-- Top-Mid FAB -->
     <button id="floating-sample-btn" onclick="document.getElementById('sample-cart-modal').style.display='block'">
-        <i class="fas fa-paper-plane"></i>
+        <i class="fas fa-satellite-dish"></i>
         <span>Samples</span>
     </button>
 
-    <!-- Main StockFlow-style Modal -->
+    <!-- Main Futuristic Modal -->
     <div id="sample-cart-modal">
         <div class="sc-header">
-            <h2>Dispatch Dashboard</h2>
+            <h2>DISPATCH SYS</h2>
             <button class="close-modal-btn" onclick="document.getElementById('sample-cart-modal').style.display='none'">
                 <i class="fas fa-times"></i>
             </button>
         </div>
         
         <div class="sc-card">
-            <h3 class="sc-card-title"><i class="fas fa-search text-blue-500"></i> Source & Search</h3>
+            <h3 class="sc-card-title"><i class="fas fa-radar text-blue-500"></i> SOURCE LOCATOR</h3>
             <div class="toggle-group">
                 <button id="toggle-rm" class="source-toggle active">Raw Materials</button>
                 <button id="toggle-fg" class="source-toggle">FG Vault</button>
             </div>
             <div class="sc-search-wrap">
-                <input type="text" id="oop-search-input" class="sc-search-input" placeholder="Search product name or code...">
+                <input type="text" id="oop-search-input" class="sc-search-input" placeholder="Enter parameters...">
                 <div id="oop-suggestions"></div>
             </div>
         </div>
 
         <div class="sc-card" id="cart-container" style="display: none;">
-            <h3 class="sc-card-title"><i class="fas fa-box text-purple-500"></i> Current Dispatch</h3>
+            <h3 class="sc-card-title" style="color: var(--neon-green);"><i class="fas fa-layer-group"></i> ACTIVE PAYLOAD</h3>
             <ul id="oop-cart-list" style="list-style-type: none; padding: 0; margin: 0;"></ul>
             <button id="oop-finalise-btn" class="sc-btn-primary">
-                Finalise & Enter Customer
+                Finalise Payload
             </button>
         </div>
 
         <div class="sc-card">
-            <h3 class="sc-card-title"><i class="fas fa-history text-green-500"></i> Dispatched Records</h3>
-            <div style="display: flex; gap: 10px; margin-bottom: 20px;">
-                <button id="oop-export-btn" class="sc-btn-success" style="flex: 3;">
-                    <i class="fas fa-file-excel"></i> Download Excel
+            <h3 class="sc-card-title"><i class="fas fa-server"></i> TRANSMITTED LOGS</h3>
+            <div style="display: flex; gap: 10px; margin-bottom: 24px;">
+                <button id="oop-export-btn" style="flex: 3; background: rgba(10, 132, 255, 0.15); color: var(--neon-blue); border: 1px solid rgba(10, 132, 255, 0.3); border-radius: 12px; padding: 12px; font-weight: 800; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; font-size: 12px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                    <i class="fas fa-download"></i> Extract XML
                 </button>
-                <button onclick="sampleApp.clearHistory()" class="sc-btn-danger" style="flex: 1;">
-                    <i class="fas fa-trash"></i>
+                <button onclick="sampleApp.clearHistory()" style="flex: 1; background: rgba(239, 71, 111, 0.15); color: #ef476f; border: 1px solid rgba(239, 71, 111, 0.3); border-radius: 12px; padding: 12px; cursor: pointer;">
+                    <i class="fas fa-trash-alt"></i>
                 </button>
             </div>
             <div style="overflow-x: auto;">
                 <table class="sc-table">
                     <thead>
                         <tr>
-                            <th>Date</th>
-                            <th>Customer</th>
-                            <th>Items</th>
+                            <th>Timestamp</th>
+                            <th>Target Entity</th>
+                            <th>Payload Data</th>
                         </tr>
                     </thead>
                     <tbody id="oop-saved-table-body"></tbody>
@@ -241,15 +231,15 @@
         </div>
     </div>
 
-    <!-- Unified Custom Overlay (No Website URLs) -->
+    <!-- Unified Dark Overlay -->
     <div id="custom-prompt-overlay">
         <div class="prompt-box">
-            <h3 id="prompt-title" class="prompt-title">TITLE</h3>
+            <h3 id="prompt-title" class="prompt-title">SYSTEM PROMPT</h3>
             <p id="prompt-desc" class="prompt-desc">Desc</p>
             <input type="text" id="prompt-input" class="prompt-input" autocomplete="off">
             <div class="prompt-btn-group">
-                <button id="prompt-cancel" class="prompt-btn prompt-btn-cancel">Cancel</button>
-                <button id="prompt-confirm" class="prompt-btn prompt-btn-confirm">Confirm</button>
+                <button id="prompt-cancel" class="prompt-btn prompt-btn-cancel">Abort</button>
+                <button id="prompt-confirm" class="prompt-btn prompt-btn-confirm">Execute</button>
             </div>
         </div>
     </div>
@@ -324,13 +314,16 @@
                 });
             }
 
-            // Custom UI Prompt Function (With Input)
-            showCustomPrompt(title, desc, placeholder, callback) {
+            showCustomPrompt(title, desc, placeholder, isGreenBtn, callback) {
                 this.promptTitle.innerText = title;
-                this.promptDesc.innerText = desc;
+                this.promptTitle.style.color = isGreenBtn ? 'var(--neon-green)' : 'var(--neon-blue)';
+                this.promptDesc.innerHTML = desc;
                 this.promptInput.style.display = 'block';
                 this.promptInput.placeholder = placeholder;
                 this.promptInput.value = '';
+                
+                this.promptConfirm.className = 'prompt-btn prompt-btn-confirm';
+                if (isGreenBtn) this.promptConfirm.classList.add('green');
                 
                 this.promptOverlay.style.display = 'flex';
                 this.promptInput.focus();
@@ -350,7 +343,7 @@
                     this.promptConfirm.removeEventListener('click', handleConfirm);
                     this.promptCancel.removeEventListener('click', close);
                     this.promptInput.onkeyup = null;
-                    this.promptInput.style.borderColor = '#e9ecef';
+                    this.promptInput.style.borderColor = 'rgba(255,255,255,0.2)';
                 };
 
                 this.promptInput.onkeyup = (e) => { if (e.key === 'Enter') handleConfirm(); };
@@ -358,11 +351,15 @@
                 this.promptCancel.addEventListener('click', close);
             }
 
-            // Custom UI Confirm Function (No Input, replaces standard confirm())
             showCustomConfirm(title, desc, callback) {
                 this.promptTitle.innerText = title;
+                this.promptTitle.style.color = '#ef476f';
                 this.promptDesc.innerText = desc;
-                this.promptInput.style.display = 'none'; // Hide input box
+                this.promptInput.style.display = 'none'; 
+                
+                this.promptConfirm.className = 'prompt-btn prompt-btn-confirm';
+                this.promptConfirm.style.background = '#ef476f';
+                this.promptConfirm.style.boxShadow = '0 5px 20px rgba(239, 71, 111, 0.4)';
                 
                 this.promptOverlay.style.display = 'flex';
 
@@ -375,6 +372,8 @@
                     this.promptOverlay.style.display = 'none';
                     this.promptConfirm.removeEventListener('click', handleConfirm);
                     this.promptCancel.removeEventListener('click', close);
+                    this.promptConfirm.style.background = '';
+                    this.promptConfirm.style.boxShadow = '';
                 };
 
                 this.promptConfirm.addEventListener('click', handleConfirm);
@@ -458,9 +457,10 @@
 
             promptQuantity(productName, productCode) {
                 this.showCustomPrompt(
-                    "ENTER QUANTITY FOR",
-                    `${productName}\n(${productCode})`,
+                    "ASSIGN QUANTITY",
+                    `<span style="color:#fff;">${productName}</span><br><span style="color:var(--neon-blue); font-family:monospace;">${productCode}</span>`,
                     "e.g., 2pc, 100ml...",
+                    false,
                     (qty) => {
                         this.cart.push({ name: `${productName} [${productCode}]`, quantity: qty });
                         this.updateCartUI();
@@ -488,13 +488,14 @@
 
             finaliseOrder() {
                 this.showCustomPrompt(
-                    "FINALISE SAMPLES",
-                    "Enter the name of the customer:",
+                    "FINALISE PAYLOAD",
+                    "Identify Target Entity (Customer Name)",
                     "Customer Name...",
+                    true,
                     (customerName) => {
                         const newOrder = {
                             id: Date.now(),
-                            dateTime: new Date().toLocaleDateString('en-GB') + ', ' + new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+                            dateTime: new Date().toLocaleDateString('en-GB') + ' ' + new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }),
                             customer: customerName,
                             items: [...this.cart] 
                         };
@@ -511,12 +512,12 @@
                 this.savedTableBody.innerHTML = '';
                 let displayOrders = [...this.savedOrders].reverse();
                 displayOrders.forEach(order => {
-                    let itemsString = order.items.map(i => `${i.name} (<b>${i.quantity}</b>)`).join('<br>');
+                    let itemsString = order.items.map(i => `${i.name} (<strong style="color:var(--neon-green);">${i.quantity}</strong>)`).join('<br>');
                     let tr = document.createElement('tr');
                     tr.innerHTML = `
-                        <td style="color: #6c757d;">${order.dateTime}</td>
-                        <td style="font-weight: 700; color: var(--sf-text);">${order.customer}</td>
-                        <td style="line-height: 1.6;">${itemsString}</td>
+                        <td style="color: #888; font-family:monospace;">${order.dateTime}</td>
+                        <td style="font-weight: 800; color: #fff;">${order.customer}</td>
+                        <td style="line-height: 1.6; color: #ccc;">${itemsString}</td>
                     `;
                     this.savedTableBody.appendChild(tr);
                 });
@@ -526,7 +527,7 @@
                 if (this.savedOrders.length === 0) return;
                 
                 let exportData = [];
-                let latestCustomer = "Customer";
+                let latestCustomer = "Entity";
                 
                 if (this.savedOrders.length > 0) {
                     latestCustomer = this.savedOrders[this.savedOrders.length - 1].customer.replace(/[^a-zA-Z0-9 ]/g, "").trim();
@@ -544,21 +545,18 @@
                 });
 
                 const workbook = new ExcelJS.Workbook();
-                const worksheet = workbook.addWorksheet('Samples');
+                const worksheet = workbook.addWorksheet('Transmissions');
 
                 worksheet.addTable({
-                    name: 'SamplesTable',
+                    name: 'PayloadTable',
                     ref: 'A1',
                     headerRow: true,
                     totalsRow: false,
-                    style: {
-                        theme: 'TableStyleMedium2',
-                        showRowStripes: true,
-                    },
+                    style: { theme: 'TableStyleDark2', showRowStripes: true },
                     columns: [
-                        { name: 'Date & Time', filterButton: true },
-                        { name: 'Customer Name', filterButton: true },
-                        { name: 'Product Name & Code', filterButton: true },
+                        { name: 'Timestamp', filterButton: true },
+                        { name: 'Target Entity', filterButton: true },
+                        { name: 'Payload Data', filterButton: true },
                         { name: 'Quantity', filterButton: true },
                     ],
                     rows: exportData,
@@ -592,10 +590,9 @@
             }
 
             clearHistory() {
-                // Using new Custom Confirm (No Website Domain Prompt)
                 this.showCustomConfirm(
-                    "DELETE HISTORY",
-                    "Are you sure you want to clear all dispatched samples? This cannot be undone.",
+                    "PURGE LOGS",
+                    "Warning: This will permanently erase all local transmission logs. Proceed?",
                     () => {
                         this.savedOrders = [];
                         localStorage.removeItem('sample_orders_db');
