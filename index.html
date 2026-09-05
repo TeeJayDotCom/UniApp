@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>UniApp Dashboard</title>
     
+    <!-- ExcelJS for Proper Excel Formatting -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -31,159 +32,161 @@
 
         .theme-dark { background: rgba(10, 10, 15, 0.9); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border-top: 1px solid rgba(255,255,255,0.1); }
         .theme-dark .nav-btn { color: #64748b; }
-        .theme-dark .nav-btn.active { color: #00E676; text-shadow: 0 0 10px rgba(0,230,118,0.4); }
+        .theme-dark .nav-btn.active { color: #4cc9f0; text-shadow: 0 0 10px rgba(76,201,240,0.4); }
 
         /* ========================================== */
-        /* MODERN GRADIENT UI WITH PROMINENT CARDS    */
+        /* STOCKFLOW-INSPIRED CLEAN UI (NO RED/GREEN) */
         /* ========================================== */
         :root {
-            --brand-primary: #5935DE; 
-            --brand-secondary: #2C69D1; 
-            --brand-accent: #FF3366; /* Vibrant Ruby/Coral replacing Green */
-            --brand-gradient: linear-gradient(135deg, #5935DE 0%, #2C69D1 100%);
-            --accent-gradient: linear-gradient(135deg, #FF512F 0%, #DD2476 100%);
-            --brand-text: #1E1E2F;
+            --rm-primary: #4361ee; 
+            --rm-primary-dark: #3a0ca3; 
+            --rm-secondary: #7209b7; 
+            --rm-cyan: #4cc9f0; /* Success/Export replacement */
+            --rm-pink: #ef476f; /* Danger/Delete replacement */
+            --rm-bg: #f8f9fa;
+            --rm-card: #ffffff;
+            --rm-text: #1a1a2e;
+            --rm-text-muted: #6c757d;
+            --rm-border: #e9ecef;
+            --rm-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
         }
 
+        /* Top-Mid FAB */
         #floating-sample-btn { 
             position: fixed; top: 12px; left: 50%; transform: translateX(-50%); z-index: 9990; 
-            background: var(--brand-gradient); 
-            color: #fff; border: 2px solid rgba(255,255,255,0.2); border-radius: 30px; padding: 12px 24px; 
-            font-family: 'Inter', sans-serif; font-weight: 800; font-size: 13px; letter-spacing: 0.5px;
-            box-shadow: 0 8px 25px rgba(89, 53, 222, 0.5), inset 0 2px 5px rgba(255,255,255,0.3); 
-            cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.3s ease;
+            background: linear-gradient(135deg, var(--rm-primary) 0%, var(--rm-secondary) 100%); 
+            color: #fff; border: none; border-radius: 30px; padding: 10px 24px; 
+            font-family: 'Inter', sans-serif; font-weight: 700; font-size: 13px; letter-spacing: 0.5px;
+            box-shadow: 0 8px 25px rgba(67, 97, 238, 0.35); cursor: pointer; 
+            display: flex; align-items: center; gap: 8px; transition: 0.3s ease;
         }
-        #floating-sample-btn:active { transform: translateX(-50%) scale(0.95); box-shadow: 0 4px 15px rgba(89, 53, 222, 0.3); }
+        #floating-sample-btn:active { transform: translateX(-50%) scale(0.95); }
 
+        /* Modal Background */
         #sample-cart-modal { 
             display: none; position: fixed; inset: 0; 
-            background: linear-gradient(135deg, #3753E8 0%, #7E2BDC 100%); 
+            background: linear-gradient(to bottom right, #f8f9fa, #eef2f6); 
             font-family: 'Inter', sans-serif; z-index: 9999; overflow-y: auto; padding-bottom: 40px;
             animation: fadeIn 0.3s ease-out;
         }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
 
-        #sample-cart-modal::before {
-            content: ''; position: fixed; top: -10%; left: -20%; width: 70vw; height: 70vw;
-            background: radial-gradient(circle, rgba(135, 65, 245, 0.6) 0%, transparent 70%);
-            border-radius: 50%; z-index: -1; pointer-events: none;
-        }
-        #sample-cart-modal::after {
-            content: ''; position: fixed; bottom: -20%; right: -10%; width: 90vw; height: 90vw;
-            background: radial-gradient(circle, rgba(65, 145, 245, 0.4) 0%, transparent 70%);
-            border-radius: 50%; z-index: -1; pointer-events: none;
-        }
-
+        /* Compact Header */
         .sc-header { 
             display: flex; justify-content: space-between; align-items: center; 
-            padding: 30px 24px 15px 24px; position: sticky; top: 0; z-index: 100;
+            padding: 16px 20px; position: sticky; top: 0; z-index: 100;
+            background: rgba(248, 249, 250, 0.95); backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--rm-border);
         }
         .sc-header h2 { 
-            margin: 0; font-size: 26px; font-weight: 900; color: #ffffff; 
-            letter-spacing: -0.5px; line-height: 1.2; text-transform: uppercase;
-            text-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            margin: 0; font-size: 20px; font-weight: 800; 
+            background: linear-gradient(135deg, var(--rm-primary) 0%, var(--rm-secondary) 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
         }
         .close-modal-btn { 
-            background: rgba(255,255,255,0.1); color: #fff; border: 2px solid rgba(255,255,255,0.3); 
-            width: 42px; height: 42px; border-radius: 50%; display: flex; 
-            align-items: center; justify-content: center; font-size: 18px; 
-            cursor: pointer; transition: 0.2s; backdrop-filter: blur(10px);
+            background: #fff; color: var(--rm-text-muted); border: 1px solid var(--rm-border); 
+            width: 36px; height: 36px; border-radius: 12px; display: flex; 
+            align-items: center; justify-content: center; font-size: 16px; 
+            cursor: pointer; transition: 0.2s; box-shadow: 0 2px 10px rgba(0,0,0,0.03);
         }
-        .close-modal-btn:hover { background: rgba(255,255,255,0.2); border-color: #fff; transform: rotate(90deg); }
         .close-modal-btn:active { transform: scale(0.9); }
 
-        /* Highly Prominent Solid Cards */
+        /* Clean Glass Panels (Reduced padding to save vertical space) */
         .sc-card { 
-            background: #ffffff; 
-            border-radius: 24px; padding: 24px; margin: 15px 24px; 
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25); 
-            border: 2px solid rgba(255, 255, 255, 1); position: relative;
+            background: var(--rm-card); border-radius: 16px; padding: 16px 20px; margin: 16px 20px; 
+            box-shadow: var(--rm-shadow); border: 1px solid rgba(255,255,255,0.8);
+            position: relative;
         }
-        
-        /* Fixed Stacking Order so Search List overlaps below elements */
         .search-card { z-index: 50; }
         .cart-card { z-index: 40; }
         .history-card { z-index: 30; }
 
         .sc-card-title { 
-            font-size: 15px; font-weight: 900; color: var(--brand-primary); 
-            text-transform: uppercase; letter-spacing: 1px; margin: 0 0 20px 0; 
-            display: flex; align-items: center; gap: 10px;
+            font-size: 14px; font-weight: 800; color: var(--rm-text); 
+            text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 16px 0; 
+            display: flex; align-items: center; gap: 8px;
         }
+        .sc-card-title i { color: var(--rm-primary); }
 
+        /* Compact Toggles */
         .toggle-group { 
-            display: flex; gap: 8px; margin-bottom: 24px; background: #f4f5f7; 
-            padding: 6px; border-radius: 100px; box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);
+            display: flex; gap: 6px; margin-bottom: 16px; background: #f1f3f5; 
+            padding: 4px; border-radius: 12px; 
         }
         .source-toggle { 
-            flex: 1; padding: 14px; border: none; background: transparent; cursor: pointer; 
-            border-radius: 100px; font-family: 'Inter', sans-serif; font-weight: 800; 
-            font-size: 13px; color: #6c757d; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
-            text-transform: uppercase; letter-spacing: 0.5px;
+            flex: 1; padding: 10px; border: none; background: transparent; cursor: pointer; 
+            border-radius: 10px; font-family: 'Inter', sans-serif; font-weight: 700; 
+            font-size: 13px; color: var(--rm-text-muted); transition: all 0.3s; 
         }
         .source-toggle.active { 
-            background: #ffffff; color: var(--brand-primary); 
-            box-shadow: 0 4px 15px rgba(89, 53, 222, 0.2); 
+            background: #ffffff; color: var(--rm-primary); 
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05); 
         }
 
+        /* Search Input */
         .sc-search-wrap { position: relative; z-index: 1000; }
         .sc-search-input { 
-            width: 100%; padding: 18px 24px; font-family: 'Inter', sans-serif; font-size: 15px; font-weight: 700;
-            background: #f8f9fa; border: 2px solid #e9ecef; border-radius: 20px; 
-            box-sizing: border-box; outline: none; transition: 0.3s; color: var(--brand-text);
+            width: 100%; padding: 14px 16px; font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 600;
+            background: var(--rm-bg); border: 2px solid var(--rm-border); border-radius: 12px; 
+            box-sizing: border-box; outline: none; transition: 0.3s; color: var(--rm-text);
         }
         .sc-search-input:focus { 
-            background: #fff; border-color: var(--brand-primary); 
-            box-shadow: 0 0 0 4px rgba(89, 53, 222, 0.15); 
+            background: #fff; border-color: var(--rm-primary); 
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15); 
         }
         
+        /* Dropdown - Allowed huge height so it never compresses */
         #oop-suggestions { 
-            position: absolute; top: calc(100% + 8px); left: 0; width: 100%; background: #ffffff; 
-            border: 1px solid #e9ecef; border-radius: 20px; max-height: 40vh; overflow-y: auto; display: none; 
-            z-index: 10000; box-shadow: 0 20px 50px rgba(0,0,0,0.2); padding: 8px;
+            position: absolute; top: calc(100% + 6px); left: 0; width: 100%; background: #ffffff; 
+            border: 1px solid var(--rm-border); border-radius: 12px; max-height: 55vh; overflow-y: auto; display: none; 
+            z-index: 10000; box-shadow: 0 15px 35px rgba(0,0,0,0.1); padding: 6px;
         }
         .suggestion-item { 
-            padding: 16px; margin-bottom: 4px; cursor: pointer; display: flex; 
-            justify-content: space-between; align-items: center; transition: 0.2s; border-radius: 14px; 
+            padding: 12px 14px; margin-bottom: 2px; cursor: pointer; display: flex; 
+            justify-content: space-between; align-items: center; transition: 0.2s; border-radius: 8px; 
         }
-        .suggestion-item:hover { background: rgba(89, 53, 222, 0.05); }
-        .sugg-name { flex: 1; margin-right: 15px; font-size: 14px; font-weight: 700; color: var(--brand-text); }
-        .sugg-code { font-size: 12px; font-weight: 800; color: var(--brand-primary); background: #f8f9fa; padding: 6px 12px; border-radius: 10px; font-family: monospace; border: 1px solid #e9ecef; }
+        .suggestion-item:hover { background: var(--rm-bg); }
+        .sugg-name { flex: 1; margin-right: 15px; font-size: 13px; font-weight: 600; color: var(--rm-text); }
+        .sugg-code { font-size: 11px; font-weight: 700; color: var(--rm-primary-dark); background: #eef2f6; padding: 4px 8px; border-radius: 6px; font-family: monospace; border: 1px solid var(--rm-border); }
 
-        .sc-list-item { padding: 16px 0; border-bottom: 1px dashed rgba(89, 53, 222, 0.2); display: flex; justify-content: space-between; align-items: center; font-size: 14px; }
+        /* Cart List */
+        .sc-list-item { padding: 12px 0; border-bottom: 1px dashed var(--rm-border); display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
         .sc-list-item:last-child { border-bottom: none; }
-        .cart-name { font-weight: 700; color: var(--brand-text); }
-        .cart-qty { font-weight: 900; color: var(--brand-primary); font-size: 16px; background: rgba(89, 53, 222, 0.1); padding: 4px 10px; border-radius: 8px; }
+        .cart-name { font-weight: 600; color: var(--rm-text); }
+        .cart-qty { font-weight: 800; color: var(--rm-primary); font-size: 14px; background: rgba(67, 97, 238, 0.1); padding: 4px 8px; border-radius: 6px; }
         
+        /* Primary Action Button */
         .sc-btn-primary { 
-            background: var(--brand-gradient); color: white; border: none; 
-            padding: 18px; font-family: 'Inter', sans-serif; font-size: 15px; width: 100%; margin-top: 15px; border-radius: 100px; 
-            font-weight: 900; cursor: pointer; box-shadow: 0 10px 25px rgba(89, 53, 222, 0.4); transition: 0.2s;
+            background: linear-gradient(135deg, var(--rm-primary) 0%, var(--rm-primary-dark) 100%); color: white; border: none; 
+            padding: 14px; font-family: 'Inter', sans-serif; font-size: 14px; width: 100%; margin-top: 12px; border-radius: 12px; 
+            font-weight: 700; cursor: pointer; box-shadow: 0 6px 15px rgba(67, 97, 238, 0.25); transition: 0.2s;
         }
-        .sc-btn-primary:active { transform: translateY(2px); box-shadow: 0 4px 10px rgba(89, 53, 222, 0.3); }
+        .sc-btn-primary:active { transform: translateY(2px); }
         
-        /* New Export & Delete Buttons (No Green) */
-        .sc-btn-export { background: var(--accent-gradient); color: #fff; border: none; border-radius: 100px; padding: 14px; font-weight: 800; font-family: 'Inter'; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 8px 20px rgba(221, 36, 118, 0.3); transition: 0.2s; }
+        /* Secondary Buttons (Blue/Cyan for Excel, Magenta for Delete) */
+        .sc-btn-export { background: linear-gradient(135deg, var(--rm-primary) 0%, var(--rm-cyan) 100%); color: #fff; border: none; border-radius: 12px; padding: 12px; font-weight: 700; font-family: 'Inter'; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 15px rgba(76, 201, 240, 0.3); transition: 0.2s; }
         .sc-btn-export:active { transform: scale(0.98); }
 
-        .sc-btn-danger { background: rgba(239, 71, 111, 0.1); color: #ef476f; border: 2px solid rgba(239, 71, 111, 0.2); border-radius: 100px; padding: 14px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+        .sc-btn-danger { background: rgba(239, 71, 111, 0.1); color: var(--rm-pink); border: 1px solid rgba(239, 71, 111, 0.2); border-radius: 12px; padding: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
         .sc-btn-danger:active { transform: scale(0.98); background: rgba(239, 71, 111, 0.2); }
 
-        .sc-table { width: 100%; border-collapse: collapse; font-size: 13px; color: var(--brand-text); }
-        .sc-table th { padding: 12px 10px; font-weight: 800; color: var(--brand-primary); text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; background: rgba(89, 53, 222, 0.05); border-radius: 8px; }
-        .sc-table td { padding: 16px 10px; border-bottom: 1px dashed rgba(89, 53, 222, 0.15); vertical-align: top; }
+        /* Table */
+        .sc-table { width: 100%; border-collapse: collapse; font-size: 12px; color: var(--rm-text); }
+        .sc-table th { padding: 10px 8px; border-bottom: 2px solid var(--rm-border); font-weight: 700; color: var(--rm-text-muted); text-align: left; text-transform: uppercase; letter-spacing: 0.5px; }
+        .sc-table td { padding: 14px 8px; border-bottom: 1px solid var(--rm-border); vertical-align: top; }
 
-        #custom-prompt-overlay { display: none; position: fixed; inset: 0; background: rgba(30, 30, 47, 0.8); z-index: 100005; align-items: center; justify-content: center; padding: 20px; font-family: 'Inter', sans-serif; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
-        .prompt-box { background: #ffffff; width: 100%; max-width: 320px; border-radius: 30px; padding: 30px; box-shadow: 0 30px 60px rgba(0,0,0,0.5); text-align: center; }
-        .prompt-title { margin-top: 0; color: var(--brand-primary); font-size: 15px; font-weight: 900; text-transform: uppercase; margin-bottom: 10px; letter-spacing: 1px; }
-        .prompt-desc { font-size: 14px; color: #6c757d; margin-bottom: 24px; font-weight: 600; line-height: 1.5; }
-        .prompt-input { width: 100%; padding: 16px; border: 2px solid #e9ecef; background: #f8f9fa; border-radius: 16px; font-size: 16px; font-weight: 700; font-family: 'Inter'; margin-bottom: 24px; box-sizing: border-box; outline: none; transition: 0.2s; text-align: center; color: var(--brand-text); }
-        .prompt-input:focus { border-color: var(--brand-primary); background: #fff; box-shadow: 0 0 0 4px rgba(89, 53, 222, 0.15); }
+        /* Prompt Overlay */
+        #custom-prompt-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 100005; align-items: center; justify-content: center; padding: 20px; font-family: 'Inter', sans-serif; backdrop-filter: blur(4px); }
+        .prompt-box { background: #ffffff; width: 100%; max-width: 320px; border-radius: 20px; padding: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); text-align: center; }
+        .prompt-title { margin-top: 0; color: var(--rm-primary); font-size: 14px; font-weight: 800; text-transform: uppercase; margin-bottom: 10px; letter-spacing: 0.5px; }
+        .prompt-desc { font-size: 13px; color: var(--rm-text-muted); margin-bottom: 20px; font-weight: 500; line-height: 1.5; }
+        .prompt-input { width: 100%; padding: 14px; border: 2px solid var(--rm-border); background: var(--rm-bg); border-radius: 12px; font-size: 15px; font-weight: 600; font-family: 'Inter'; margin-bottom: 20px; box-sizing: border-box; outline: none; transition: 0.2s; text-align: center; color: var(--rm-text); }
+        .prompt-input:focus { border-color: var(--rm-primary); background: #fff; box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1); }
         .prompt-btn-group { display: flex; gap: 10px; }
-        .prompt-btn { flex: 1; padding: 16px; border: none; border-radius: 100px; font-weight: 800; font-family: 'Inter'; cursor: pointer; font-size: 14px; transition: 0.2s; }
+        .prompt-btn { flex: 1; padding: 12px; border: none; border-radius: 10px; font-weight: 700; font-family: 'Inter'; cursor: pointer; font-size: 13px; transition: 0.2s; }
         .prompt-btn-cancel { background: #f1f3f5; color: #4a5568; }
-        .prompt-btn-confirm { background: var(--brand-gradient); color: white; box-shadow: 0 8px 20px rgba(89, 53, 222, 0.3); }
-        .prompt-btn-confirm.danger { background: #ef476f; box-shadow: 0 8px 20px rgba(239, 71, 111, 0.3); }
+        .prompt-btn-confirm { background: linear-gradient(135deg, var(--rm-primary) 0%, var(--rm-primary-dark) 100%); color: white; box-shadow: 0 4px 12px rgba(67, 97, 238, 0.25); }
+        .prompt-btn-confirm.danger { background: var(--rm-pink); box-shadow: 0 4px 12px rgba(239, 71, 111, 0.25); }
     </style>
 </head>
 <body>
@@ -202,40 +205,36 @@
         </button>
     </nav>
     
+    <!-- Top-Mid FAB -->
     <button id="floating-sample-btn" onclick="document.getElementById('sample-cart-modal').style.display='block'">
-        <i class="fas fa-box-open text-lg"></i>
+        <i class="fas fa-box-open"></i>
         <span>Samples</span>
     </button>
 
+    <!-- Clean Light Modal -->
     <div id="sample-cart-modal">
         <div class="sc-header">
-            <h2>Dispatch<br>Samples</h2>
+            <h2>Dispatch Center</h2>
             <button class="close-modal-btn" onclick="document.getElementById('sample-cart-modal').style.display='none'">
                 <i class="fas fa-times"></i>
             </button>
         </div>
         
-        <!-- Search Card has highest z-index so dropdown escapes container -->
+        <!-- Cards assigned z-indexes to prevent clipping of the search list -->
         <div class="sc-card search-card">
-            <h3 class="sc-card-title">
-                <div style="background: rgba(89, 53, 222, 0.1); padding: 8px; border-radius: 10px; display: flex;"><i class="fas fa-search" style="color: var(--brand-primary)"></i></div> 
-                Source & Search
-            </h3>
+            <h3 class="sc-card-title"><i class="fas fa-search"></i> Source & Search</h3>
             <div class="toggle-group">
                 <button id="toggle-rm" class="source-toggle active">Raw Materials</button>
                 <button id="toggle-fg" class="source-toggle">FG Vault</button>
             </div>
             <div class="sc-search-wrap">
-                <input type="text" id="oop-search-input" class="sc-search-input" placeholder="Search product name or code...">
+                <input type="text" id="oop-search-input" class="sc-search-input" placeholder="Search by name or code...">
                 <div id="oop-suggestions"></div>
             </div>
         </div>
 
         <div class="sc-card cart-card" id="cart-container" style="display: none;">
-            <h3 class="sc-card-title">
-                <div style="background: rgba(89, 53, 222, 0.1); padding: 8px; border-radius: 10px; display: flex;"><i class="fas fa-shopping-bag" style="color: var(--brand-primary)"></i></div> 
-                Current Cart
-            </h3>
+            <h3 class="sc-card-title"><i class="fas fa-shopping-bag"></i> Current Cart</h3>
             <ul id="oop-cart-list" style="list-style-type: none; padding: 0; margin: 0;"></ul>
             <button id="oop-finalise-btn" class="sc-btn-primary">
                 Finalise & Enter Customer
@@ -243,11 +242,8 @@
         </div>
 
         <div class="sc-card history-card">
-            <h3 class="sc-card-title">
-                <div style="background: rgba(221, 36, 118, 0.1); padding: 8px; border-radius: 10px; display: flex;"><i class="fas fa-history" style="color: #DD2476"></i></div> 
-                Dispatched Records
-            </h3>
-            <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+            <h3 class="sc-card-title"><i class="fas fa-history" style="color: var(--rm-secondary)"></i> Dispatched Records</h3>
+            <div style="display: flex; gap: 10px; margin-bottom: 16px;">
                 <button id="oop-export-btn" class="sc-btn-export" style="flex: 3;">
                     <i class="fas fa-file-excel"></i> Download Excel
                 </button>
@@ -355,7 +351,7 @@
 
             showCustomPrompt(title, desc, placeholder, callback) {
                 this.promptTitle.innerText = title;
-                this.promptTitle.style.color = 'var(--brand-primary)';
+                this.promptTitle.style.color = 'var(--rm-primary)';
                 this.promptDesc.innerHTML = desc;
                 this.promptInput.style.display = 'block';
                 this.promptInput.placeholder = placeholder;
@@ -372,7 +368,7 @@
                         close();
                         if (callback) callback(val);
                     } else {
-                        this.promptInput.style.borderColor = '#ef476f';
+                        this.promptInput.style.borderColor = 'var(--rm-pink)';
                     }
                 };
 
@@ -381,7 +377,7 @@
                     this.promptConfirm.removeEventListener('click', handleConfirm);
                     this.promptCancel.removeEventListener('click', close);
                     this.promptInput.onkeyup = null;
-                    this.promptInput.style.borderColor = '#e9ecef';
+                    this.promptInput.style.borderColor = 'var(--rm-border)';
                 };
 
                 this.promptInput.onkeyup = (e) => { if (e.key === 'Enter') handleConfirm(); };
@@ -391,7 +387,7 @@
 
             showCustomConfirm(title, desc, callback) {
                 this.promptTitle.innerText = title;
-                this.promptTitle.style.color = '#ef476f';
+                this.promptTitle.style.color = 'var(--rm-pink)';
                 this.promptDesc.innerText = desc;
                 this.promptInput.style.display = 'none'; 
                 
@@ -492,7 +488,7 @@
             promptQuantity(productName, productCode) {
                 this.showCustomPrompt(
                     "ASSIGN QUANTITY",
-                    `<strong style="color:var(--brand-text); font-size:15px;">${productName}</strong><br><span style="color:#6c757d; font-family:monospace; font-size: 13px; margin-top:8px; display:inline-block;">${productCode}</span>`,
+                    `<strong style="color:var(--rm-text); font-size:14px;">${productName}</strong><br><span style="color:var(--rm-text-muted); font-family:monospace; font-size: 12px; margin-top:6px; display:inline-block;">${productCode}</span>`,
                     "e.g., 2pc, 100ml...",
                     (qty) => {
                         this.cart.push({ name: `${productName} [${productCode}]`, quantity: qty });
@@ -544,11 +540,11 @@
                 this.savedTableBody.innerHTML = '';
                 let displayOrders = [...this.savedOrders].reverse();
                 displayOrders.forEach(order => {
-                    let itemsString = order.items.map(i => `${i.name} (<strong style="color:var(--brand-primary); font-size:14px;">${i.quantity}</strong>)`).join('<br><br>');
+                    let itemsString = order.items.map(i => `${i.name} (<strong style="color:var(--rm-primary); font-size:13px;">${i.quantity}</strong>)`).join('<br><br>');
                     let tr = document.createElement('tr');
                     tr.innerHTML = `
-                        <td style="color: #6c757d; font-size: 12px;">${order.dateTime}</td>
-                        <td style="font-weight: 800; color: var(--brand-text);">${order.customer}</td>
+                        <td style="color: var(--rm-text-muted); font-size: 11px;">${order.dateTime}</td>
+                        <td style="font-weight: 700; color: var(--rm-text);">${order.customer}</td>
                         <td style="line-height: 1.4;">${itemsString}</td>
                     `;
                     this.savedTableBody.appendChild(tr);
