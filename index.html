@@ -35,27 +35,28 @@
         .theme-dark .nav-btn.active { color: #00E676; text-shadow: 0 0 10px rgba(0,230,118,0.4); }
 
         /* ========================================== */
-        /* MODERN GRADIENT UI (MATCHING UPLOADED PIC) */
+        /* MODERN GRADIENT UI WITH PREMIUM FOREGROUND */
         /* ========================================== */
         :root {
-            --brand-primary: #5935DE; /* Vibrant Purple */
-            --brand-secondary: #2C69D1; /* Electric Blue */
-            --brand-light: #ffffff;
+            --brand-primary: #5935DE; 
+            --brand-secondary: #2C69D1; 
+            --brand-gradient: linear-gradient(135deg, #5935DE 0%, #2C69D1 100%);
             --brand-text: #1E1E2F;
+            --glass-bg: rgba(255, 255, 255, 0.90); /* Transparent white for glass effect */
         }
 
-        /* Top-Mid FAB with Original Blue Glow */
+        /* Top-Mid FAB */
         #floating-sample-btn { 
             position: fixed; top: 12px; left: 50%; transform: translateX(-50%); z-index: 9990; 
-            background: linear-gradient(135deg, #0A84FF 0%, #5E5CE6 100%); 
-            color: #fff; border: none; border-radius: 30px; padding: 12px 24px; 
-            font-family: 'Inter', sans-serif; font-weight: 700; font-size: 13px; letter-spacing: 0.5px;
-            box-shadow: 0 8px 25px rgba(10, 132, 255, 0.4); cursor: pointer; 
-            display: flex; align-items: center; gap: 8px; transition: transform 0.3s ease, box-shadow 0.3s ease;
+            background: var(--brand-gradient); 
+            color: #fff; border: 2px solid rgba(255,255,255,0.2); border-radius: 30px; padding: 12px 24px; 
+            font-family: 'Inter', sans-serif; font-weight: 800; font-size: 13px; letter-spacing: 0.5px;
+            box-shadow: 0 8px 25px rgba(89, 53, 222, 0.5), inset 0 2px 5px rgba(255,255,255,0.3); 
+            cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.3s ease;
         }
-        #floating-sample-btn:active { transform: translateX(-50%) scale(0.95); box-shadow: 0 4px 15px rgba(10, 132, 255, 0.3); }
+        #floating-sample-btn:active { transform: translateX(-50%) scale(0.95); box-shadow: 0 4px 15px rgba(89, 53, 222, 0.3); }
 
-        /* Vibrant Gradient Modal Background */
+        /* Vibrant Background */
         #sample-cart-modal { 
             display: none; position: fixed; inset: 0; 
             background: linear-gradient(135deg, #3753E8 0%, #7E2BDC 100%); 
@@ -64,7 +65,7 @@
         }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Abstract Wavy Background Elements */
+        /* Wavy Background Elements */
         #sample-cart-modal::before {
             content: ''; position: fixed; top: -10%; left: -20%; width: 70vw; height: 70vw;
             background: radial-gradient(circle, rgba(135, 65, 245, 0.6) 0%, transparent 70%);
@@ -76,97 +77,119 @@
             border-radius: 50%; z-index: -1; pointer-events: none;
         }
 
-        /* Transparent Header with White Text */
+        /* Transparent Header */
         .sc-header { 
             display: flex; justify-content: space-between; align-items: center; 
             padding: 30px 24px 15px 24px; position: sticky; top: 0; z-index: 100;
         }
         .sc-header h2 { 
-            margin: 0; font-size: 26px; font-weight: 900; 
-            color: #ffffff; letter-spacing: -0.5px; line-height: 1.2; text-transform: uppercase;
+            margin: 0; font-size: 26px; font-weight: 900; color: #ffffff; 
+            letter-spacing: -0.5px; line-height: 1.2; text-transform: uppercase;
+            text-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
         .close-modal-btn { 
-            background: transparent; color: #fff; border: 2px solid rgba(255,255,255,0.3); 
-            width: 40px; height: 40px; border-radius: 50%; display: flex; 
+            background: rgba(255,255,255,0.1); color: #fff; border: 2px solid rgba(255,255,255,0.3); 
+            width: 42px; height: 42px; border-radius: 50%; display: flex; 
             align-items: center; justify-content: center; font-size: 18px; 
-            cursor: pointer; transition: 0.2s; backdrop-filter: blur(5px);
+            cursor: pointer; transition: 0.2s; backdrop-filter: blur(10px);
         }
-        .close-modal-btn:hover { background: rgba(255,255,255,0.1); border-color: #fff; }
+        .close-modal-btn:hover { background: rgba(255,255,255,0.2); border-color: #fff; transform: rotate(90deg); }
         .close-modal-btn:active { transform: scale(0.9); }
 
-        /* Clean White Floating Cards */
+        /* Frosted Glass Cards (Not bland anymore) */
         .sc-card { 
-            background: #ffffff; border-radius: 24px; padding: 24px; margin: 15px 24px; 
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2); position: relative;
+            background: var(--glass-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border-radius: 28px; padding: 24px; margin: 15px 24px; 
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15), inset 0 1px 1px rgba(255,255,255,0.8); 
+            border: 1px solid rgba(255, 255, 255, 0.5); position: relative;
         }
-        .sc-card-title { font-size: 14px; font-weight: 800; color: #8e9aab; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 20px 0; display: flex; align-items: center; gap: 8px; }
+        .sc-card-title { 
+            font-size: 15px; font-weight: 900; color: var(--brand-primary); 
+            text-transform: uppercase; letter-spacing: 1px; margin: 0 0 20px 0; 
+            display: flex; align-items: center; gap: 10px;
+        }
 
-        /* Toggles */
-        .toggle-group { display: flex; gap: 10px; margin-bottom: 20px; background: #f4f5f7; padding: 6px; border-radius: 14px; }
+        /* Plush Segmented Toggles */
+        .toggle-group { 
+            display: flex; gap: 8px; margin-bottom: 24px; background: rgba(0,0,0,0.04); 
+            padding: 6px; border-radius: 100px; box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);
+        }
         .source-toggle { 
-            flex: 1; padding: 12px; border: none; background: transparent; cursor: pointer; 
-            border-radius: 10px; font-family: 'Inter', sans-serif; font-weight: 700; font-size: 13px; color: #6c757d; transition: all 0.3s; text-transform: uppercase; letter-spacing: 0.5px;
+            flex: 1; padding: 14px; border: none; background: transparent; cursor: pointer; 
+            border-radius: 100px; font-family: 'Inter', sans-serif; font-weight: 800; 
+            font-size: 13px; color: #6c757d; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+            text-transform: uppercase; letter-spacing: 0.5px;
         }
-        .source-toggle.active { background: #ffffff; color: var(--brand-primary); box-shadow: 0 4px 10px rgba(0,0,0,0.08); }
+        .source-toggle.active { 
+            background: #ffffff; color: var(--brand-primary); 
+            box-shadow: 0 4px 15px rgba(89, 53, 222, 0.2); 
+        }
 
-        /* Modern Search Input */
+        /* 3D Search Input */
         .sc-search-wrap { position: relative; z-index: 1000; }
         .sc-search-input { 
-            width: 100%; padding: 16px 20px; font-family: 'Inter', sans-serif; font-size: 15px; font-weight: 500;
-            background: #f8f9fa; border: 2px solid transparent; border-radius: 16px; 
+            width: 100%; padding: 18px 24px; font-family: 'Inter', sans-serif; font-size: 15px; font-weight: 600;
+            background: rgba(255,255,255,0.7); border: 2px solid rgba(89, 53, 222, 0.1); border-radius: 20px; 
             box-sizing: border-box; outline: none; transition: 0.3s; color: var(--brand-text);
+            box-shadow: inset 0 2px 6px rgba(0,0,0,0.02);
         }
-        .sc-search-input:focus { border-color: var(--brand-primary); box-shadow: 0 0 0 4px rgba(89, 53, 222, 0.15); background: #fff; }
+        .sc-search-input:focus { 
+            background: #fff; border-color: var(--brand-primary); 
+            box-shadow: 0 0 0 4px rgba(89, 53, 222, 0.15), inset 0 2px 6px rgba(0,0,0,0.02); 
+        }
         
-        /* Floating Dropdown */
+        /* Premium Dropdown */
         #oop-suggestions { 
-            position: absolute; top: 100%; left: 0; width: 100%; background: #fff; 
-            border: 1px solid #e9ecef; border-radius: 16px; max-height: 45vh; overflow-y: auto; display: none; 
-            z-index: 10000; box-shadow: 0 15px 35px rgba(0,0,0,0.15); margin-top: 8px; padding: 8px;
+            position: absolute; top: calc(100% + 8px); left: 0; width: 100%; background: rgba(255,255,255,0.95); 
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.8); 
+            border-radius: 20px; max-height: 40vh; overflow-y: auto; display: none; 
+            z-index: 10000; box-shadow: 0 20px 40px rgba(0,0,0,0.15); padding: 8px;
         }
+        .suggestion-item { 
+            padding: 16px; margin-bottom: 4px; cursor: pointer; display: flex; 
+            justify-content: space-between; align-items: center; transition: 0.2s; border-radius: 14px; 
+        }
+        .suggestion-item:hover { background: rgba(89, 53, 222, 0.05); }
+        .sugg-name { flex: 1; margin-right: 15px; font-size: 14px; font-weight: 700; color: var(--brand-text); }
+        .sugg-code { font-size: 12px; font-weight: 800; color: var(--brand-primary); background: #ffffff; padding: 6px 12px; border-radius: 10px; font-family: monospace; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 1px solid rgba(89, 53, 222, 0.1); }
 
-        .suggestion-item { padding: 14px 16px; border-bottom: 1px solid #f4f5f7; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; border-radius: 8px; }
-        .suggestion-item:hover { background: #f8f9fa; }
-        .suggestion-item:last-child { border-bottom: none; }
-        .sugg-name { flex: 1; margin-right: 15px; font-size: 14px; font-weight: 600; color: var(--brand-text); }
-        .sugg-code { font-size: 12px; font-weight: 700; color: var(--brand-primary); background: rgba(89, 53, 222, 0.1); padding: 6px 10px; border-radius: 8px; font-family: monospace; }
-
-        /* Cart List */
-        .sc-list-item { padding: 16px 0; border-bottom: 1px dashed #e9ecef; display: flex; justify-content: space-between; align-items: center; font-size: 14px; }
+        /* Styled Cart List */
+        .sc-list-item { padding: 16px 0; border-bottom: 1px dashed rgba(89, 53, 222, 0.2); display: flex; justify-content: space-between; align-items: center; font-size: 14px; }
         .sc-list-item:last-child { border-bottom: none; }
-        .cart-name { font-weight: 600; color: var(--brand-text); }
-        .cart-qty { font-weight: 800; color: var(--brand-primary); }
+        .cart-name { font-weight: 700; color: var(--brand-text); }
+        .cart-qty { font-weight: 900; color: var(--brand-primary); font-size: 16px; background: rgba(89, 53, 222, 0.1); padding: 4px 10px; border-radius: 8px; }
         
-        /* Action Buttons (Pill shaped, vibrant purple like image) */
+        /* Vibrant Pill Buttons */
         .sc-btn-primary { 
-            background: var(--brand-primary); color: white; border: none; 
-            padding: 16px; font-family: 'Inter', sans-serif; font-size: 15px; width: 100%; margin-top: 15px; border-radius: 30px; 
-            font-weight: 800; cursor: pointer; box-shadow: 0 8px 20px rgba(89, 53, 222, 0.3); transition: 0.2s;
+            background: var(--brand-gradient); color: white; border: none; 
+            padding: 18px; font-family: 'Inter', sans-serif; font-size: 15px; width: 100%; margin-top: 15px; border-radius: 100px; 
+            font-weight: 900; cursor: pointer; box-shadow: 0 10px 25px rgba(89, 53, 222, 0.4); transition: 0.2s;
         }
         .sc-btn-primary:active { transform: translateY(2px); box-shadow: 0 4px 10px rgba(89, 53, 222, 0.3); }
         
-        .sc-btn-success { background: rgba(89, 53, 222, 0.1); color: var(--brand-primary); border: none; border-radius: 20px; padding: 14px; font-weight: 800; font-family: 'Inter'; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; }
-        .sc-btn-success:active { transform: scale(0.98); background: rgba(89, 53, 222, 0.2); }
+        .sc-btn-success { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; border: none; border-radius: 100px; padding: 14px; font-weight: 800; font-family: 'Inter'; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3); transition: 0.2s; }
+        .sc-btn-success:active { transform: scale(0.98); }
 
-        .sc-btn-danger { background: rgba(239, 71, 111, 0.1); color: #ef476f; border: none; border-radius: 20px; padding: 14px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+        .sc-btn-danger { background: rgba(239, 71, 111, 0.1); color: #ef476f; border: 2px solid rgba(239, 71, 111, 0.2); border-radius: 100px; padding: 14px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
         .sc-btn-danger:active { transform: scale(0.98); background: rgba(239, 71, 111, 0.2); }
 
+        /* Tinted Table */
         .sc-table { width: 100%; border-collapse: collapse; font-size: 13px; color: var(--brand-text); }
-        .sc-table th { padding: 12px 8px; border-bottom: 2px solid #e9ecef; font-weight: 700; color: #a0aec0; text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
-        .sc-table td { padding: 16px 8px; border-bottom: 1px solid #f4f5f7; vertical-align: top; }
+        .sc-table th { padding: 12px 10px; font-weight: 800; color: var(--brand-primary); text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; background: rgba(89, 53, 222, 0.05); border-radius: 8px; }
+        .sc-table td { padding: 16px 10px; border-bottom: 1px dashed rgba(89, 53, 222, 0.15); vertical-align: top; }
 
-        /* Unified Light Prompt Overlay */
-        #custom-prompt-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 100005; align-items: center; justify-content: center; padding: 20px; font-family: 'Inter', sans-serif; backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); }
-        .prompt-box { background: #fff; width: 100%; max-width: 320px; border-radius: 24px; padding: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.3); text-align: center; }
-        .prompt-title { margin-top: 0; color: var(--brand-text); font-size: 14px; font-weight: 900; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 1px; }
-        .prompt-desc { font-size: 14px; color: #6c757d; margin-bottom: 24px; font-weight: 500; line-height: 1.5; }
-        .prompt-input { width: 100%; padding: 16px; border: 2px solid #e9ecef; background: #f8f9fa; border-radius: 12px; font-size: 15px; font-weight: 600; font-family: 'Inter'; margin-bottom: 24px; box-sizing: border-box; outline: none; transition: 0.2s; text-align: center; color: var(--brand-text); }
-        .prompt-input:focus { border-color: var(--brand-primary); background: #fff; }
+        /* Unified Prompt Overlay (Glassmorphism) */
+        #custom-prompt-overlay { display: none; position: fixed; inset: 0; background: rgba(30, 30, 47, 0.7); z-index: 100005; align-items: center; justify-content: center; padding: 20px; font-family: 'Inter', sans-serif; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+        .prompt-box { background: rgba(255,255,255,0.95); border: 1px solid rgba(255,255,255,0.5); width: 100%; max-width: 320px; border-radius: 30px; padding: 30px; box-shadow: 0 30px 60px rgba(0,0,0,0.4); text-align: center; }
+        .prompt-title { margin-top: 0; color: var(--brand-primary); font-size: 15px; font-weight: 900; text-transform: uppercase; margin-bottom: 10px; letter-spacing: 1px; }
+        .prompt-desc { font-size: 14px; color: #6c757d; margin-bottom: 24px; font-weight: 600; line-height: 1.5; }
+        .prompt-input { width: 100%; padding: 16px; border: 2px solid rgba(89, 53, 222, 0.1); background: #f8f9fa; border-radius: 16px; font-size: 16px; font-weight: 700; font-family: 'Inter'; margin-bottom: 24px; box-sizing: border-box; outline: none; transition: 0.2s; text-align: center; color: var(--brand-text); box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); }
+        .prompt-input:focus { border-color: var(--brand-primary); background: #fff; box-shadow: 0 0 0 4px rgba(89, 53, 222, 0.15); }
         .prompt-btn-group { display: flex; gap: 10px; }
-        .prompt-btn { flex: 1; padding: 14px; border: none; border-radius: 20px; font-weight: 800; font-family: 'Inter'; cursor: pointer; font-size: 14px; transition: 0.2s; }
-        .prompt-btn-cancel { background: #f4f5f7; color: #4a5568; }
-        .prompt-btn-confirm { background: var(--brand-primary); color: white; box-shadow: 0 6px 15px rgba(89, 53, 222, 0.3); }
-        .prompt-btn-confirm.danger { background: #ef476f; box-shadow: 0 6px 15px rgba(239, 71, 111, 0.3); }
+        .prompt-btn { flex: 1; padding: 16px; border: none; border-radius: 100px; font-weight: 800; font-family: 'Inter'; cursor: pointer; font-size: 14px; transition: 0.2s; }
+        .prompt-btn-cancel { background: #f1f3f5; color: #4a5568; }
+        .prompt-btn-confirm { background: var(--brand-gradient); color: white; box-shadow: 0 8px 20px rgba(89, 53, 222, 0.3); }
+        .prompt-btn-confirm.danger { background: #ef476f; box-shadow: 0 8px 20px rgba(239, 71, 111, 0.3); }
     </style>
 </head>
 <body>
@@ -191,7 +214,7 @@
         <span>Samples</span>
     </button>
 
-    <!-- Modern Abstract Modal -->
+    <!-- Modern Glass Modal -->
     <div id="sample-cart-modal">
         <div class="sc-header">
             <h2>Dispatch<br>Samples</h2>
@@ -201,7 +224,10 @@
         </div>
         
         <div class="sc-card">
-            <h3 class="sc-card-title"><i class="fas fa-search" style="color: var(--brand-secondary)"></i> Source & Search</h3>
+            <h3 class="sc-card-title">
+                <div style="background: rgba(89, 53, 222, 0.1); padding: 8px; border-radius: 10px; display: flex;"><i class="fas fa-search" style="color: var(--brand-primary)"></i></div> 
+                Source & Search
+            </h3>
             <div class="toggle-group">
                 <button id="toggle-rm" class="source-toggle active">Raw Materials</button>
                 <button id="toggle-fg" class="source-toggle">FG Vault</button>
@@ -213,7 +239,10 @@
         </div>
 
         <div class="sc-card" id="cart-container" style="display: none;">
-            <h3 class="sc-card-title"><i class="fas fa-shopping-bag" style="color: var(--brand-primary)"></i> Current Cart</h3>
+            <h3 class="sc-card-title">
+                <div style="background: rgba(89, 53, 222, 0.1); padding: 8px; border-radius: 10px; display: flex;"><i class="fas fa-shopping-bag" style="color: var(--brand-primary)"></i></div> 
+                Current Cart
+            </h3>
             <ul id="oop-cart-list" style="list-style-type: none; padding: 0; margin: 0;"></ul>
             <button id="oop-finalise-btn" class="sc-btn-primary">
                 Finalise & Enter Customer
@@ -221,7 +250,10 @@
         </div>
 
         <div class="sc-card">
-            <h3 class="sc-card-title"><i class="fas fa-history" style="color: #00C48C"></i> Dispatched Records</h3>
+            <h3 class="sc-card-title">
+                <div style="background: rgba(16, 185, 129, 0.1); padding: 8px; border-radius: 10px; display: flex;"><i class="fas fa-history" style="color: #10b981"></i></div> 
+                Dispatched Records
+            </h3>
             <div style="display: flex; gap: 10px; margin-bottom: 20px;">
                 <button id="oop-export-btn" class="sc-btn-success" style="flex: 3;">
                     <i class="fas fa-file-excel"></i> Download Excel
@@ -356,7 +388,7 @@
                     this.promptConfirm.removeEventListener('click', handleConfirm);
                     this.promptCancel.removeEventListener('click', close);
                     this.promptInput.onkeyup = null;
-                    this.promptInput.style.borderColor = '#e9ecef';
+                    this.promptInput.style.borderColor = 'rgba(89, 53, 222, 0.1)';
                 };
 
                 this.promptInput.onkeyup = (e) => { if (e.key === 'Enter') handleConfirm(); };
@@ -467,7 +499,7 @@
             promptQuantity(productName, productCode) {
                 this.showCustomPrompt(
                     "ASSIGN QUANTITY",
-                    `<strong style="color:var(--brand-text);">${productName}</strong><br><span style="color:#6c757d; font-family:monospace; font-size: 13px;">${productCode}</span>`,
+                    `<strong style="color:var(--brand-text); font-size:15px;">${productName}</strong><br><span style="color:#6c757d; font-family:monospace; font-size: 13px; margin-top:8px; display:inline-block;">${productCode}</span>`,
                     "e.g., 2pc, 100ml...",
                     (qty) => {
                         this.cart.push({ name: `${productName} [${productCode}]`, quantity: qty });
@@ -519,12 +551,12 @@
                 this.savedTableBody.innerHTML = '';
                 let displayOrders = [...this.savedOrders].reverse();
                 displayOrders.forEach(order => {
-                    let itemsString = order.items.map(i => `${i.name} (<strong style="color:var(--brand-primary);">${i.quantity}</strong>)`).join('<br>');
+                    let itemsString = order.items.map(i => `${i.name} (<strong style="color:var(--brand-primary); font-size:14px;">${i.quantity}</strong>)`).join('<br><br>');
                     let tr = document.createElement('tr');
                     tr.innerHTML = `
-                        <td style="color: #6c757d;">${order.dateTime}</td>
+                        <td style="color: #6c757d; font-size: 12px;">${order.dateTime}</td>
                         <td style="font-weight: 800; color: var(--brand-text);">${order.customer}</td>
-                        <td style="line-height: 1.6;">${itemsString}</td>
+                        <td style="line-height: 1.4;">${itemsString}</td>
                     `;
                     this.savedTableBody.appendChild(tr);
                 });
@@ -534,8 +566,6 @@
                 if (this.savedOrders.length === 0) return;
                 
                 let exportData = [];
-                
-                // MULTI-CUSTOMER FILENAME LOGIC (Fixed)
                 let uniqueCustomers = [...new Set(this.savedOrders.map(order => order.customer.replace(/[^a-zA-Z0-9 ]/g, "").trim()))];
                 let filenameCustomer = uniqueCustomers.length === 1 ? uniqueCustomers[0] : "Multiple_Customers";
 
