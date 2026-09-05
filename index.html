@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>UniApp Dashboard</title>
     
-    <!-- html2canvas for generating screenshots -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -65,7 +64,6 @@
         }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Wavy Background Elements */
         #sample-cart-modal::before {
             content: ''; position: fixed; top: -10%; left: -20%; width: 70vw; height: 70vw;
             background: radial-gradient(circle, rgba(135, 65, 245, 0.6) 0%, transparent 70%);
@@ -120,22 +118,18 @@
             border-radius: 10px; font-family: 'Inter', sans-serif; font-weight: 700; 
             font-size: 13px; color: var(--brand-text-muted); transition: all 0.3s; 
         }
+        /* UPGRADED: Glowing gradient background for active toggles */
         .source-toggle.active { 
-            background: #ffffff; color: var(--brand-primary); 
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08); 
+            background: var(--brand-gradient); color: white; 
+            box-shadow: 0 4px 12px rgba(89, 53, 222, 0.35); 
         }
 
-        /* ---------------------------------------------------- */
-        /* UI FIX: CLEAR & PROMINENT SEARCH INPUT FIELD         */
-        /* ---------------------------------------------------- */
         .sc-search-wrap { position: relative; z-index: 1000; }
         .sc-search-input { 
             width: 100%; padding: 14px 16px 14px 40px; font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 600;
-            background: #ffffff; /* Explicit White background */
-            border: 2px solid rgba(89, 53, 222, 0.25); /* Clear visible border */
-            border-radius: 12px; 
+            background: #ffffff; border: 2px solid rgba(89, 53, 222, 0.25); border-radius: 12px; 
             box-sizing: border-box; outline: none; transition: 0.3s; color: var(--brand-text);
-            box-shadow: 0 2px 6px rgba(0,0,0,0.05); /* Slight shadow to pop out */
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05); 
         }
         .sc-search-input::placeholder { color: #8e9aab; font-weight: 500; }
         .sc-search-input:focus { 
@@ -187,22 +181,11 @@
         .prompt-box { background: #ffffff; width: 100%; max-width: 320px; border-radius: 20px; padding: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.3); text-align: center; }
         .prompt-title { margin-top: 0; color: var(--brand-primary); font-size: 14px; font-weight: 800; text-transform: uppercase; margin-bottom: 10px; }
         .prompt-desc { font-size: 13px; color: var(--brand-text-muted); margin-bottom: 20px; font-weight: 500; line-height: 1.5; }
-        
-        /* ---------------------------------------------------- */
-        /* UI FIX: CLEAR PROMPT INPUT FIELD                     */
-        /* ---------------------------------------------------- */
         .prompt-input { 
-            width: 100%; padding: 14px; 
-            border: 2px solid rgba(89, 53, 222, 0.25); /* Clear visible border */
-            background: #ffffff; /* Explicit white bg */
-            border-radius: 12px; font-size: 15px; font-weight: 600; font-family: 'Inter'; 
-            margin-bottom: 20px; box-sizing: border-box; outline: none; transition: 0.2s; 
-            text-align: center; color: var(--brand-text); box-shadow: 0 2px 6px rgba(0,0,0,0.05); 
+            width: 100%; padding: 14px; border: 2px solid rgba(89, 53, 222, 0.25); background: #ffffff; border-radius: 12px; font-size: 15px; font-weight: 600; font-family: 'Inter'; 
+            margin-bottom: 20px; box-sizing: border-box; outline: none; transition: 0.2s; text-align: center; color: var(--brand-text); box-shadow: 0 2px 6px rgba(0,0,0,0.05); 
         }
-        .prompt-input:focus { 
-            border-color: var(--brand-primary); 
-            box-shadow: 0 0 0 4px rgba(89, 53, 222, 0.15), 0 2px 6px rgba(0,0,0,0.05); 
-        }
+        .prompt-input:focus { border-color: var(--brand-primary); box-shadow: 0 0 0 4px rgba(89, 53, 222, 0.15), 0 2px 6px rgba(0,0,0,0.05); }
         
         .prompt-btn-group { display: flex; gap: 10px; }
         .prompt-btn { flex: 1; padding: 12px; border: none; border-radius: 10px; font-weight: 700; font-family: 'Inter'; cursor: pointer; font-size: 13px; transition: 0.2s; }
@@ -265,9 +248,11 @@
             <h3 class="sc-card-title"><i class="fas fa-history"></i> Dispatched Records</h3>
             
             <div id="history-action-btns" style="display: flex; gap: 10px; margin-bottom: 16px;">
-                <!-- Updated: Share Screenshot Button -->
-                <button id="oop-export-btn" class="sc-btn-export" style="flex: 3;">
-                    <i class="fas fa-share-nodes"></i> Share / Export List
+                <button id="oop-share-btn" class="sc-btn-export" style="flex: 1.5;">
+                    <i class="fas fa-share-nodes"></i> Share
+                </button>
+                <button id="oop-save-btn" class="sc-btn-export" style="flex: 1.5; background: rgba(44, 105, 209, 0.1); color: var(--brand-secondary);">
+                    <i class="fas fa-download"></i> Save
                 </button>
                 <button onclick="sampleApp.clearHistory()" class="sc-btn-danger" style="flex: 1;">
                     <i class="fas fa-trash-alt"></i>
@@ -338,7 +323,9 @@
                 this.cartList = document.getElementById('oop-cart-list');
                 this.finaliseBtn = document.getElementById('oop-finalise-btn');
                 this.savedTableBody = document.getElementById('oop-saved-table-body');
-                this.exportBtn = document.getElementById('oop-export-btn');
+                
+                this.shareBtn = document.getElementById('oop-share-btn');
+                this.saveBtn = document.getElementById('oop-save-btn');
                 
                 this.btnRM = document.getElementById('toggle-rm');
                 this.btnFG = document.getElementById('toggle-fg');
@@ -358,8 +345,8 @@
                 this.searchInput.addEventListener('input', (e) => this.handleSearch(e.target.value));
                 this.finaliseBtn.addEventListener('click', () => this.finaliseOrder());
                 
-                // Screenshot / Native Share Handler
-                this.exportBtn.addEventListener('click', () => this.shareScreenshot());
+                this.shareBtn.addEventListener('click', () => this.processScreenshot('share'));
+                this.saveBtn.addEventListener('click', () => this.processScreenshot('save'));
                 
                 this.btnRM.addEventListener('click', () => this.switchSource('RM'));
                 this.btnFG.addEventListener('click', () => this.switchSource('FG'));
@@ -573,23 +560,18 @@
                 });
             }
 
-            // ----------------------------------------------------
-            // NEW: NATIVE SCREENSHOT & SHARE (WEB SHARE API)
-            // ----------------------------------------------------
-            async shareScreenshot() {
+            async processScreenshot(action) {
                 if (this.savedOrders.length === 0) return;
                 
                 const captureArea = document.getElementById('history-capture-area');
                 const actionBtns = document.getElementById('history-action-btns');
                 const tableWrap = document.getElementById('table-wrap');
 
-                // 1. Prepare UI for clean capture (Hide buttons, reveal full table)
                 actionBtns.style.display = 'none';
                 const originalOverflow = tableWrap.style.overflowX;
                 tableWrap.style.overflowX = 'visible';
                 
                 try {
-                    // 2. Capture the card Element as Canvas
                     const canvas = await html2canvas(captureArea, { 
                         scale: 2, 
                         backgroundColor: '#ffffff',
@@ -597,17 +579,14 @@
                         windowHeight: captureArea.scrollHeight 
                     });
                     
-                    // Restore UI immediately
                     actionBtns.style.display = 'flex';
                     tableWrap.style.overflowX = originalOverflow;
 
-                    // 3. Convert Canvas to File Blob and trigger Native Share
                     canvas.toBlob(async (blob) => {
                         const dateStr = new Date().toLocaleDateString('en-GB').replace(/\//g, '-');
                         const file = new File([blob], `Samples_Record_${dateStr}.png`, { type: 'image/png' });
 
-                        // Check if browser supports sharing files natively (WhatsApp, Mail, etc.)
-                        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                        if (action === 'share' && navigator.canShare && navigator.canShare({ files: [file] })) {
                             try {
                                 await navigator.share({
                                     files: [file],
@@ -615,10 +594,9 @@
                                     text: 'Here is the finalised list of dispatched samples.'
                                 });
                             } catch (err) {
-                                console.warn('User cancelled share or share failed', err);
+                                console.warn('User cancelled share', err);
                             }
                         } else {
-                            // Fallback: If native share unsupported (e.g. some desktops), force Image Download
                             const link = document.createElement("a");
                             link.href = URL.createObjectURL(blob);
                             link.download = file.name;
